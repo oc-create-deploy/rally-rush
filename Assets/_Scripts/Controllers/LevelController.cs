@@ -9,7 +9,8 @@ public class LevelController : MonoBehaviour
     public List<GameObject> levels = new List<GameObject>();
     public void Awake()
     {
-        currentLevel = PlayerPrefs.GetInt("level");
+        if (levels.Count == 0) { Debug.LogError("Rally Rush has no configured levels."); return; }
+        currentLevel = Mathf.Clamp(PlayerPrefs.GetInt("level"), 0, levels.Count - 1);
         InitMap();
     }
 
@@ -22,6 +23,7 @@ public class LevelController : MonoBehaviour
         currentLevel++;
         currentLevel = Mathf.Clamp(currentLevel, 0, levels.Count-1);
         PlayerPrefs.SetInt("level", currentLevel);
+        PlayerPrefs.Save();
         SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
         Debug.Log("LOAD NEXT LEVEL");
     }

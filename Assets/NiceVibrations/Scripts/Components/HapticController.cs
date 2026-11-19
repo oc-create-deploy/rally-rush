@@ -221,6 +221,9 @@ namespace Lofelt.NiceVibrations
         /// <returns>Whether the device supports the minimum requirements to play haptics</returns>
         public static bool Init()
         {
+#if PLAYABLE_IOS_SIMULATOR
+            return false;
+#else
             if (!lofeltHapticsInitalized)
             {
                 lofeltHapticsInitalized = true;
@@ -246,6 +249,7 @@ namespace Lofelt.NiceVibrations
                 GamepadRumbler.Init();
             }
             return deviceMeetsAdvancedRequirements;
+#endif
         }
 
         /// <summary>

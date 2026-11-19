@@ -1,6 +1,6 @@
 using UnityEngine;
 
-#if (UNITY_IOS && !UNITY_EDITOR)
+#if (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
     using UnityEngine.iOS;
 #endif
 
@@ -169,7 +169,7 @@ namespace Lofelt.NiceVibrations
             platformVersion = int.Parse(SystemInfo.operatingSystem.Substring(SystemInfo.operatingSystem.IndexOf("-") + 1, 3));
             const int minimumSupportedAndroidSDKVersion = 17;
             isVersionSupported = platformVersion >= minimumSupportedAndroidSDKVersion;
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             string versionString = Device.systemVersion;
             string[] versionArray = versionString.Split('.');
             platformVersion = int.Parse(versionArray[0]);
@@ -237,7 +237,7 @@ namespace Lofelt.NiceVibrations
             _hasAmplitudeControl = LofeltHaptics.DeviceMeetsMinimumPlatformRequirements();
             _canEmulateEmphasis = LofeltHaptics.DeviceMeetsMinimumPlatformRequirements();
             _canLoop = LofeltHaptics.DeviceMeetsMinimumPlatformRequirements();
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             _hasAmplitudeControl = LofeltHaptics.DeviceMeetsMinimumPlatformRequirements();
             _hasFrequencyControl = LofeltHaptics.DeviceMeetsMinimumPlatformRequirements();
             _hasAmplitudeModulation = LofeltHaptics.DeviceMeetsMinimumPlatformRequirements();

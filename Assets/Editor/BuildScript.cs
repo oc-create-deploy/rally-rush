@@ -11,6 +11,9 @@ public static class BuildScript
     public static void BuildIos()
     {
         const string outputPath = "build/iOS";
+        bool simulator = string.Equals(Environment.GetEnvironmentVariable("UNITY_IOS_SIMULATOR"), "true", StringComparison.OrdinalIgnoreCase);
+        var haptics = AssetImporter.GetAtPath("Assets/NiceVibrations/Plugins/iOS/LofeltHaptics.framework") as PluginImporter;
+        if (haptics != null) { haptics.SetCompatibleWithAnyPlatform(false); haptics.SetCompatibleWithPlatform(BuildTarget.iOS, !simulator); haptics.SaveAndReimport(); }
         const string appIconPath = "Assets/Brand/RallyRush-AppIcon.png";
         Directory.CreateDirectory(outputPath);
 
@@ -22,6 +25,7 @@ public static class BuildScript
         PlayerSettings.iOS.targetDevice = iOSTargetDevice.iPhoneOnly;
         PlayerSettings.iOS.targetOSVersionString = "15.0";
         PlayerSettings.iOS.appleEnableAutomaticSigning = false;
+        PlayerSettings.defaultInterfaceOrientation = UIOrientation.Portrait;
         PlayerSettings.iOS.sdkVersion = string.Equals(
             Environment.GetEnvironmentVariable("UNITY_IOS_SIMULATOR"),
             "true",
@@ -57,6 +61,8 @@ public static class BuildScript
             locationPathName = outputPath,
             target = BuildTarget.iOS,
             targetGroup = BuildTargetGroup.iOS,
+            extraScriptingDefines = string.Equals(Environment.GetEnvironmentVariable("UNITY_IOS_SIMULATOR"), "true", StringComparison.OrdinalIgnoreCase)
+                ? new[] { "PLAYABLE_IOS_SIMULATOR" } : new string[0],
             options = BuildOptions.CleanBuildCache
         });
 

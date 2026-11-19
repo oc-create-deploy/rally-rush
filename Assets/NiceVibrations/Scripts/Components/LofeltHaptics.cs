@@ -4,7 +4,7 @@ using System;
 #if (UNITY_ANDROID && !UNITY_EDITOR)
 using System.Text;
 using System.Runtime.InteropServices;
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
 using UnityEngine.iOS;
 using System.Runtime.InteropServices;
 #endif
@@ -51,7 +51,7 @@ namespace Lofelt.NiceVibrations
         [DllImport("lofelt_sdk")]
         private static extern bool lofeltHapticsLoadDirect(IntPtr controller, [In] byte[] bytes, long size);
 
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
         // imports of iOS Framework bindings
 
         [DllImport("__Internal")]
@@ -130,7 +130,7 @@ namespace Lofelt.NiceVibrations
             {
                 Debug.LogException(ex);
             }
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             lofeltHapticsSystemHapticsInitializeBinding();
             systemHapticsInitialized = true;
             controller = lofeltHapticsInitBinding();
@@ -155,7 +155,7 @@ namespace Lofelt.NiceVibrations
             {
                 Debug.LogWarning(ex);
             }
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             if(DeviceCapabilities.isVersionSupported) {
                 lofeltHapticsSystemHapticsReleaseBinding();
                 if(controller != IntPtr.Zero) {
@@ -170,7 +170,7 @@ namespace Lofelt.NiceVibrations
         {
 #if (UNITY_ANDROID && !UNITY_EDITOR)
             return JNIHelpers.Call<bool>(lofeltHaptics, "deviceMeetsMinimumRequirements");
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             return lofeltHapticsDeviceMeetsMinimumRequirementsBinding();
 #else
             return true;
@@ -188,7 +188,7 @@ namespace Lofelt.NiceVibrations
             // No exception handling needed here, lofeltHapticsLoadDirect() is a native method that
             // doesn't throw an exception and instead logs the error.
             lofeltHapticsLoadDirect((IntPtr)nativeController, data, data.Length);
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             lofeltHapticsLoadBinding(controller, data, data.Length);
 #endif
         }
@@ -197,7 +197,7 @@ namespace Lofelt.NiceVibrations
         {
 #if (UNITY_ANDROID && !UNITY_EDITOR)
             return JNIHelpers.Call<float>(lofeltHaptics, "getClipDuration");
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             return lofeltHapticsGetClipDurationBinding(controller);
 #else
             //No haptic clip was loaded with Lofelt SDK, so it returns 0.0f
@@ -209,7 +209,7 @@ namespace Lofelt.NiceVibrations
         {
 #if (UNITY_ANDROID && !UNITY_EDITOR)
             JNIHelpers.Call(lofeltHaptics, playMethodId);
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             lofeltHapticsPlayBinding(controller);
 #endif
         }
@@ -225,7 +225,7 @@ namespace Lofelt.NiceVibrations
         {
 #if (UNITY_ANDROID && !UNITY_EDITOR)
             JNIHelpers.Call(lofeltHaptics, stopMethodId);
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             lofeltHapticsStopBinding(controller);
 #endif
         }
@@ -248,7 +248,7 @@ namespace Lofelt.NiceVibrations
         {
 #if (UNITY_ANDROID && !UNITY_EDITOR)
             JNIHelpers.Call(lofeltHaptics, seekMethodId, time);
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             lofeltHapticsSeekBinding(controller, time);
 #endif
         }
@@ -257,14 +257,14 @@ namespace Lofelt.NiceVibrations
         {
 #if (UNITY_ANDROID && !UNITY_EDITOR)
             JNIHelpers.Call(lofeltHaptics, setAmplitudeMultiplicationMethodId, factor);
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             lofeltHapticsSetAmplitudeMultiplicationBinding(controller, factor);
 #endif
         }
 
         public static void SetFrequencyShift(float shift)
         {
-#if (UNITY_IOS && !UNITY_EDITOR)
+#if (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             lofeltHapticsSetFrequencyShiftBinding(controller, shift);
 #endif
         }
@@ -273,14 +273,14 @@ namespace Lofelt.NiceVibrations
         {
 #if (UNITY_ANDROID && !UNITY_EDITOR)
             JNIHelpers.Call(lofeltHaptics, loopMethodId, enabled);
-#elif (UNITY_IOS && !UNITY_EDITOR)
+#elif (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             lofeltHapticsLoopBinding(controller, enabled);
 #endif
         }
 
         public static void TriggerPresetHaptics(int type)
         {
-#if (UNITY_IOS && !UNITY_EDITOR)
+#if (UNITY_IOS && !UNITY_EDITOR && !PLAYABLE_IOS_SIMULATOR)
             if (!systemHapticsInitialized)
             {
                 lofeltHapticsSystemHapticsInitializeBinding();
