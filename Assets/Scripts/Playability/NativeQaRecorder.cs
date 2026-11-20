@@ -71,8 +71,8 @@ public sealed class NativeQaRecorder : MonoBehaviour
         {
             Rect safe=Screen.safeArea;
             var state=new Snapshot{scene=SceneManager.GetActiveScene().name,frame=Time.frameCount,width=Screen.width,height=Screen.height,safeX=safe.x,safeY=safe.y,safeW=safe.width,safeH=safe.height,errors=new List<string>(errors)};
-            string[] fields={"Score","Coins","IsPlaying","Remaining","TrayCount","Won","Lost","coins","workers","factories","prestige","best","lane","distance","state","points","recordPoints","playerCount","currentLevel","carryingItem","isGamePaused","amount","startZ","endZ","totalZ","canStart"};
-            string[] models={"MetroDashGame","EmpireIdleGame","MatchscapeGame","GameManager","GameController","GameFlowManager","LevelController","PlayerManager","ArmyMovementController","ArmyController","RadialFormation","BattleController"};
+            string[] fields={"Score","Coins","IsPlaying","Remaining","TrayCount","Won","Lost","coins","workers","factories","prestige","best","lane","distance","state","points","recordPoints","playerCount","currentLevel","carryingItem","isGamePaused","amount","startZ","endZ","totalZ","canStart","canEject","bestScore","lastScore"};
+            string[] models={"MetroDashGame","EmpireIdleGame","MatchscapeGame","GameManager","GameController","GameFlowManager","LevelController","PlayerManager","ArmyMovementController","ArmyController","RadialFormation","BattleController","ScoreManager"};
             foreach(MonoBehaviour c in FindObjectsOfType<MonoBehaviour>())
             {
                 if(c==null || !c.isActiveAndEnabled) continue;string type=c.GetType().Name;

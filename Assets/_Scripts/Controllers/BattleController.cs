@@ -45,6 +45,7 @@ namespace _Scripts.Controllers
 
         public void Battle()
         {
+            camController.lockCamera = true; // Follow must not fight the battle camera tween.
             cameraTransform.DOMove(new Vector3(9F, 9F, 100F), 1).OnComplete(OpenBattleScene);
             cameraTransform.DORotate(new Vector3(25, -50, 0), 0.5F);
         }
@@ -53,9 +54,15 @@ namespace _Scripts.Controllers
         {
             if (canEject)
             {
-                if (bossComponent.catBall.GetComponent<Rigidbody>().velocity == Vector3.zero)
+                var ball = bossComponent.catBall;
+                var body = ball.GetComponent<Rigidbody>();
+                // Crossing the final score marker completes the roll even if friction
+                // never produces an exactly-zero velocity on the current platform.
+                if (body.velocity.sqrMagnitude < .0025f || ball.transform.position.z >= ScoreManager.Instance.point100Location.position.z)
                 {
-                    ScoreManager.Instance.EndGamePopupScore(bossComponent.gameObject);
+                    body.velocity = Vector3.zero;
+                    body.angularVelocity = Vector3.zero;
+                    ScoreManager.Instance.EndGamePopupScore(ball.gameObject);
                     GameFlowManager.Instance.UpdateGameState(GameState.Win);
                     canEject = false;
                 }

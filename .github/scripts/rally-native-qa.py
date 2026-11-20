@@ -123,8 +123,20 @@ else:
     capture('failure-win-timeout');raise AssertionError(('Real winning route timed out',route))
 (out/'route.json').write_text(json.dumps(route,indent=2))
 capture('06-win')
+won_best=int(val('ScoreManager.bestScore'))
+assert won_best>0, 'Actual win must record a positive best score'
 tap('RUN AGAIN');time.sleep(4)
 assert val('GameFlowManager.state')=='Start','Win replay failed'
 capture('07-win-replay')
 result=json.loads((out/'result.json').read_text());result.update({'realPositiveGateRunWon':True,'bossNativeTouches':boss_taps,'winReplay':True,'winAndProgressPersistence':'PERSISTENCE_PENDING'})
+(out/'result.json').write_text(json.dumps(result,indent=2))
+
+subprocess.run(['xcrun','simctl','terminate',udid,bundle],check=True)
+for snapshot_path in container.rglob('qa-state.json'):snapshot_path.unlink()
+subprocess.run(['xcrun','simctl','launch',udid,bundle],check=True)
+time.sleep(4)
+assert int(val('ScoreManager.bestScore'))==won_best,'Earned best score did not survive cold launch'
+assert val('GameFlowManager.state')=='Start','Cold launch did not restore a playable start'
+capture('08-cold-restored')
+result.update({'earnedBestScore':won_best,'earnedBestScoreColdLaunchVerified':True,'winAndProgressPersistence':True})
 (out/'result.json').write_text(json.dumps(result,indent=2))
