@@ -73,7 +73,10 @@ namespace _Scripts.Controllers
             for (int i = 1; i < this.transform.childCount; i++)
             {
                 Cat cat = transform.GetChild(i).GetComponent<Cat>();
-                cat.rotationTarget.transform.rotation = Quaternion.Euler(new Vector3(0, Mathf.Clamp(dir,-100F,100F),0));
+                // Primitive crowd units have no animated child rig. Rotate their root instead.
+                if (cat == null) continue;
+                Transform rig = cat.rotationTarget != null ? cat.rotationTarget : cat.transform;
+                rig.rotation = Quaternion.Euler(0, Mathf.Clamp(dir, -100F, 100F), 0);
 
             }
         }

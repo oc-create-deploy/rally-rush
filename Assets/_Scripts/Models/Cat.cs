@@ -22,6 +22,7 @@ namespace _Scripts.Models
 
         public void ControlAnimationState(int state)
         {
+            if (_catAnimator == null || _catAnimator.runtimeAnimatorController == null) return;
             if (state == 0)
             {
                 _catAnimator.SetTrigger("stopRunning");
@@ -35,6 +36,7 @@ namespace _Scripts.Models
         
         private void RandomizeIdle()
         {
+            if (_catAnimator == null || _catAnimator.runtimeAnimatorController == null) return;
             _catAnimator.enabled = false;
             float waitToAnimate = UnityEngine.Random.Range(0, 0.2F);
             StartCoroutine(WaitForAnimate(waitToAnimate));

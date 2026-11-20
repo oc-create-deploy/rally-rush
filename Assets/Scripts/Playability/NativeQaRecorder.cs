@@ -71,14 +71,20 @@ public sealed class NativeQaRecorder : MonoBehaviour
         {
             Rect safe=Screen.safeArea;
             var state=new Snapshot{scene=SceneManager.GetActiveScene().name,frame=Time.frameCount,width=Screen.width,height=Screen.height,safeX=safe.x,safeY=safe.y,safeW=safe.width,safeH=safe.height,errors=new List<string>(errors)};
-            string[] fields={"Score","Coins","IsPlaying","Remaining","TrayCount","Won","Lost","coins","workers","factories","prestige","best","lane","distance","state","points","recordPoints","playerCount","currentLevel","carryingItem"};
-            string[] models={"MetroDashGame","EmpireIdleGame","MatchscapeGame","GameManager","GameController","GameFlowManager","LevelController","PlayerManager"};
+            string[] fields={"Score","Coins","IsPlaying","Remaining","TrayCount","Won","Lost","coins","workers","factories","prestige","best","lane","distance","state","points","recordPoints","playerCount","currentLevel","carryingItem","isGamePaused","amount","startZ","endZ","totalZ","canStart"};
+            string[] models={"MetroDashGame","EmpireIdleGame","MatchscapeGame","GameManager","GameController","GameFlowManager","LevelController","PlayerManager","ArmyMovementController","ArmyController","RadialFormation","BattleController"};
             foreach(MonoBehaviour c in FindObjectsOfType<MonoBehaviour>())
             {
                 if(c==null || !c.isActiveAndEnabled) continue;string type=c.GetType().Name;
                 if(models.Contains(type)) foreach(string key in fields)
                 {
                     try {object value=Read(c,key);if(value!=null) state.values.Add(new Value{key=type+"."+key,value=Describe(value)});}catch(Exception){}
+                }
+                if(type=="ArmyMovementController" || type=="CameraController" || type=="Cat")
+                {
+                    state.values.Add(new Value{key=type+".position",value=c.transform.position.ToString("F3")});
+                    var renderer=c.GetComponentInChildren<Renderer>();
+                    if(renderer!=null) state.values.Add(new Value{key=type+".bounds",value=renderer.bounds.ToString()});
                 }
                 bool hidden=c.GetComponentsInParent<CanvasGroup>().Any(g=>g.alpha<.1f);
                 if(c is Button b && !hidden)

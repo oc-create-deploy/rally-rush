@@ -34,7 +34,30 @@ namespace _Scripts.Core
         private void Start()
         {
             GameFlowManager.onGameStateChange += GameFlowManagerOnGameStateChange;
-            levelText.text = "level " + (SceneManager.GetActiveScene().buildIndex );
+            levelText.text = "LEVEL " + (FindObjectOfType<LevelController>().currentLevel + 1);
+            SetPlayerCountText(GameFlowManager.Instance.GetPlayerCount());
+            LabelButton(startButton.GetComponent<Button>(), "START / SWIPE TO STEER");
+            foreach (Button button in FindObjectsOfType<Button>(true))
+                if (button.name == "SettingsButton") LabelButton(button, "MENU");
+            GameFlowManagerOnGameStateChange(GameFlowManager.Instance.state);
+        }
+
+        private static void LabelButton(Button button, string label)
+        {
+            if (button == null) return;
+            var text = button.GetComponentInChildren<TextMeshProUGUI>(true);
+            if (text == null)
+            {
+                var go = new GameObject("Readable label", typeof(RectTransform));
+                go.transform.SetParent(button.transform, false);
+                text = go.AddComponent<TextMeshProUGUI>();
+                var rect = text.rectTransform;
+                rect.anchorMin = Vector2.zero; rect.anchorMax = Vector2.one;
+                rect.offsetMin = rect.offsetMax = Vector2.zero;
+            }
+            text.font = Resources.Load<TMP_FontAsset>("RallyFont");
+            text.text = label; text.fontSize = 36; text.alignment = TextAlignmentOptions.Center;
+            text.color = new Color(.12f, .22f, .3f); text.raycastTarget = false;
         }
 
         private void OnDestroy()
@@ -48,7 +71,12 @@ namespace _Scripts.Core
 
             startButtonBack.SetActive(obj == GameState.Start);
             
-            startButton.transform.DOMoveY(320, 1F);
+            // RectTransform coordinates are canvas-local, never device pixels.
+            var startRect = startButton.GetComponent<RectTransform>();
+            startRect.DOKill();
+            startRect.anchorMin = startRect.anchorMax = new Vector2(.5f, .18f);
+            startRect.anchoredPosition = Vector2.zero;
+            startRect.sizeDelta = new Vector2(650, 150);
             
             if (obj == GameState.Lose)
             {
