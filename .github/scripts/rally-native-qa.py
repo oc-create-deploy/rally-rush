@@ -16,7 +16,7 @@ def state():
             try:
                 s=json.loads(p.read_text())
                 assert not s['errors'],s['errors']
-                return s
+                if s["frame"] >= 30: return s
             except (json.JSONDecodeError,FileNotFoundError): pass
         time.sleep(.5)
     probe_errors=list(container.rglob('qa-recorder-error.txt'))
@@ -57,8 +57,13 @@ assert start,('Native start control missing',[(i['name'],i['text']) for i in sta
 action('- tapOn:\n    point: "'+point(start[0])+'"');time.sleep(2)
 assert val('GameFlowManager.state')!='Start','Native start tap did not begin gameplay'
 capture('02-gameplay')
+before_position=val('ArmyMovementController.position')
 action('- swipe:\n    start: "50%, 75%"\n    end: "75%, 75%"\n    duration: 3000')
 capture('03-steered')
+def xyz(value):return tuple(float(x.strip()) for x in value.strip('()').split(','))
+before=xyz(before_position);after=xyz(val('ArmyMovementController.position'))
+assert abs(after[0]-before[0])>.05,('Native swipe did not steer the army',before,after)
+assert after[2]>before[2],('Army did not advance',before,after)
 # Observe the real run outcome without changing the model or forcing a win.
 deadline=time.time()+240
 while time.time()<deadline:
@@ -74,4 +79,4 @@ assert restart,('Need real retry path review',terminal)
 action('- tapOn:\n    point: "'+point(restart[0])+'"');time.sleep(4)
 assert val('GameFlowManager.state')=='Start','Retry did not return to a fresh run'
 capture('05-retry')
-(out/'result.json').write_text(json.dumps({'nativeStart':True,'realSteeringGesture':True,'runOutcomeObserved':True,'retry':True,'winAndProgressPersistence':'PENDING'},indent=2))
+(out/'result.json').write_text(json.dumps({'nativeStart':True,'realSteeringGesture':True,'observedLateralMovement':True,'observedForwardMovement':True,'runOutcomeObserved':True,'retry':True,'winAndProgressPersistence':'PENDING'},indent=2))
