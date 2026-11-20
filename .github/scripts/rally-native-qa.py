@@ -42,7 +42,9 @@ def action(body):
     seq+=1
     p=out/f'input-{seq:03}.yaml'
     p.write_text(f'appId: {bundle}\n---\n'+body+'\n')
-    bridge.action(body)
+    if bridge.proc is not None and body.startswith("- tapOn:"):
+        bridge.tap_direct(body.split('"')[1])
+    else: bridge.action(body)
     time.sleep(.1)
 
 def tap(text):

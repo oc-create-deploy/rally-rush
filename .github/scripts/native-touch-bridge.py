@@ -52,7 +52,7 @@ class TouchBridge:
     def native_request(self, base, endpoint, payload):
         req=urllib.request.Request(base+'/'+endpoint,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
         with urllib.request.urlopen(req,timeout=60) as response:return response.read()
-    def swipe(self, start, end):
+    def ensure_native(self):
         # Maestro 2.12.1 parses swipe coordinates before JS evaluation. Use its
         # already-running XCUITest driver's native swipe API, not a new driver.
         if self.native_base is None:
@@ -67,10 +67,16 @@ class TouchBridge:
                         self.native_base=base;self.info=info;break
                 except Exception:pass
             assert self.native_base,'Running XCUITest driver endpoint not found'
-        def xy(point):
-            x,y=[float(v.strip().replace('%','')) for v in point.split(',')]
-            return x*self.info['widthPoints']/100,y*self.info['heightPoints']/100
-        sx,sy=xy(start);ex,ey=xy(end)
+    def xy(self, point):
+        x,y=[float(v.strip().replace('%','')) for v in point.split(',')]
+        return x*self.info['widthPoints']/100,y*self.info['heightPoints']/100
+    def tap_direct(self, point):
+        self.ensure_native()
+        x,y=self.xy(point)
+        self.native_request(self.native_base,'touch',{'x':x,'y':y})
+    def swipe(self, start, end):
+        self.ensure_native()
+        sx,sy=self.xy(start);ex,ey=self.xy(end)
         payload={'appId':self.bundle,'startX':sx,'startY':sy,'endX':ex,'endY':ey,'duration':3.0}
         result=self.native_request(self.native_base,'swipe',payload)
         with (self.out/'native-swipes.jsonl').open('a') as f:f.write(json.dumps({'touch':payload,'response':result.decode(errors='replace')[:500]})+'\n')
