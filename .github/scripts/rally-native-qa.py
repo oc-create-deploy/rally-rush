@@ -59,6 +59,8 @@ capture('01-startup')
 start=[i for i in state()['items'] if i['kind']=='button' and i['interactable'] and any(t in (i['name']+' '+i['text']).casefold() for t in ['start','play'])]
 assert start,('Native start control missing',[(i['name'],i['text']) for i in state()['items'] if i['kind']=='button'])
 action('- tapOn:\n    point: "'+point(start[0])+'"')
+start_deadline=time.time()+3
+while val('GameFlowManager.state')=='Start' and time.time()<start_deadline:time.sleep(.1)
 assert val('GameFlowManager.state')=='Game','Native start must be observed during active gameplay, not after a terminal popup'
 before_position=val('ArmyMovementController.position')
 action('- swipe:\n    start: "50%, 75%"\n    end: "75%, 75%"\n    duration: 3000')
