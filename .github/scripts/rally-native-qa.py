@@ -86,3 +86,45 @@ action('- tapOn:\n    point: "'+point(restart[0])+'"');time.sleep(4)
 assert val('GameFlowManager.state')=='Start','Retry did not return to a fresh run'
 capture('05-retry')
 (out/'result.json').write_text(json.dumps({'nativeStart':True,'realSteeringGesture':True,'observedLateralMovement':True,'observedForwardMovement':True,'runOutcomeObserved':True,'retry':True,'winAndProgressPersistence':'PENDING'},indent=2))
+# A second real run chooses beneficial visible gate operations, then taps the boss.
+# Reads model/geometry only; every change remains a normal native touch.
+tap('StartButton')
+start_deadline=time.time()+3
+while val('GameFlowManager.state')=='Start' and time.time()<start_deadline:time.sleep(.1)
+route=[];deadline=time.time()+180
+while time.time()<deadline:
+    snapshot=state();values={v['key']:v['value'] for v in snapshot['values']}
+    buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]
+    if any(i.get('text')=='RUN AGAIN' for i in buttons):break
+    if any(i['name']=='Restart' for i in buttons):
+        capture('failure-winning-route');raise AssertionError(('Positive-gate route lost',route,values))
+    if values.get('BattleController.canStart')=='True':
+        push=[i for i in buttons if 'TAP TO PUSH' in i.get('text','')]
+        assert push,('Boss touch control missing',buttons)
+        bridge.tap_direct(point(push[0]));time.sleep(.1);continue
+    if values.get('GameFlowManager.state')=='Game':
+        x,_,z=xyz(values['ArmyMovementController.position'])
+        gates=[i for i in snapshot['items'] if i['kind']=='gate' and i['interactable'] and i['shape'] and i['shape'][0]['y']>z+2]
+        if gates:
+            front=min(i['shape'][0]['y'] for i in gates)
+            choices=[i for i in gates if abs(i['shape'][0]['y']-front)<2]
+            amount=int(values['RadialFormation.amount'])
+            def effect(gate):
+                label=gate['text'];n=int(label[1:])
+                return amount+n if label[0]=='+' else amount-n if label[0]=='-' else amount*n if label[0]=='x' else amount//max(n,1)
+            gate=max(choices,key=effect);target=max(-2.2,min(2.2,gate['shape'][0]['x']-.28));dx=target-x
+            if abs(dx)>.35 and front-z<28:
+                start_x=80 if dx<0 else 20
+                end_x=max(2,min(98,start_x+dx/7.5*100))
+                route.append({'atZ':z,'gateZ':front,'operation':gate['text'],'fromX':x,'targetX':target})
+                bridge.swipe(f'{start_x}%, 70%',f'{end_x}%, 70%')
+    time.sleep(.15)
+else:
+    capture('failure-win-timeout');raise AssertionError(('Real winning route timed out',route))
+(out/'route.json').write_text(json.dumps(route,indent=2))
+capture('06-win')
+tap('RUN AGAIN');time.sleep(4)
+assert val('GameFlowManager.state')=='Start','Win replay failed'
+capture('07-win-replay')
+result=json.loads((out/'result.json').read_text());result.update({'realPositiveGateRunWon':True,'bossNativeTouches':True,'winReplay':True,'winAndProgressPersistence':'PERSISTENCE_PENDING'})
+(out/'result.json').write_text(json.dumps(result,indent=2))
