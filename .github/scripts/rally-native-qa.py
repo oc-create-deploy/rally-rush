@@ -91,7 +91,7 @@ capture('05-retry')
 tap('StartButton')
 start_deadline=time.time()+3
 while val('GameFlowManager.state')=='Start' and time.time()<start_deadline:time.sleep(.1)
-route=[];deadline=time.time()+180
+route=[];boss_taps=0;deadline=time.time()+180
 while time.time()<deadline:
     snapshot=state();values={v['key']:v['value'] for v in snapshot['values']}
     buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]
@@ -101,7 +101,7 @@ while time.time()<deadline:
     if values.get('BattleController.canStart')=='True':
         push=[i for i in buttons if 'TAP TO PUSH' in i.get('text','')]
         assert push,('Boss touch control missing',buttons)
-        bridge.tap_direct(point(push[0]));time.sleep(.1);continue
+        bridge.tap_direct(point(push[0]));boss_taps+=1;time.sleep(.1);continue
     if values.get('GameFlowManager.state')=='Game':
         x,_,z=xyz(values['ArmyMovementController.position'])
         gates=[i for i in snapshot['items'] if i['kind']=='gate' and i['interactable'] and i['shape'] and i['shape'][0]['y']>z+2]
@@ -126,5 +126,5 @@ capture('06-win')
 tap('RUN AGAIN');time.sleep(4)
 assert val('GameFlowManager.state')=='Start','Win replay failed'
 capture('07-win-replay')
-result=json.loads((out/'result.json').read_text());result.update({'realPositiveGateRunWon':True,'bossNativeTouches':True,'winReplay':True,'winAndProgressPersistence':'PERSISTENCE_PENDING'})
+result=json.loads((out/'result.json').read_text());result.update({'realPositiveGateRunWon':True,'bossNativeTouches':boss_taps,'winReplay':True,'winAndProgressPersistence':'PERSISTENCE_PENDING'})
 (out/'result.json').write_text(json.dumps(result,indent=2))
