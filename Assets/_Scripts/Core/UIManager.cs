@@ -51,14 +51,31 @@ namespace _Scripts.Core
                     if (button.onClick.GetPersistentEventCount() > 0 && button.onClick.GetPersistentMethodName(0) == "NextLevelButton") LabelButton(button, "RUN AGAIN");
                     if (button.onClick.GetPersistentEventCount() > 0 && button.onClick.GetPersistentMethodName(0) == "Decrease") LabelButton(button, "TAP TO PUSH");
                 }
+            foreach (Button button in gameWinPanel.GetComponentsInChildren<Button>(true))
+            {
+                if (button.name != "Restart" && button.name != "NextLevel") continue;
+                button.onClick = new Button.ButtonClickedEvent();
+                button.onClick.AddListener(NextLevelButton);
+                LabelButton(button, "RUN AGAIN");
+            }
+            var score = ScoreManager.Instance.endGameScoreText;
+            score.rectTransform.anchorMin = score.rectTransform.anchorMax = new Vector2(.5f, .42f);
+            score.rectTransform.anchoredPosition = Vector2.zero;
+            score.rectTransform.sizeDelta = new Vector2(800, 120);
+            score.fontSize = 44; score.enableAutoSizing = true; score.fontSizeMin = 24; score.fontSizeMax = 44;
+            score.color = Color.white;
             GameFlowManagerOnGameStateChange(GameFlowManager.Instance.state);
         }
 
         private static void LabelPopup(GameObject popup, string title)
         {
             // Reuse the existing popup layout and actions, supplying a readable title.
+            foreach (var decoration in popup.GetComponentsInChildren<Image>(true))
+                if (decoration.GetComponentInParent<Button>() == null) { decoration.color = Color.clear; decoration.raycastTarget = false; }
             var image = popup.GetComponent<Image>();
-            if (image != null) image.color = new Color(.1f, .17f, .27f, .95f);
+            if (image == null) image = popup.AddComponent<Image>();
+            image.color = new Color(.1f, .17f, .27f, .98f);
+            image.raycastTarget = false;
             var go = new GameObject("Outcome title", typeof(RectTransform));
             go.transform.SetParent(popup.transform, false);
             var text = go.AddComponent<TextMeshProUGUI>();
@@ -66,7 +83,7 @@ namespace _Scripts.Core
             rect.anchorMin = new Vector2(.1f, .65f); rect.anchorMax = new Vector2(.9f, .9f);
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             text.font = Resources.Load<TMP_FontAsset>("RallyFont");
-            text.text = title; text.fontSize = 48; text.color = new Color(.12f, .22f, .3f);
+            text.text = title; text.fontSize = 48; text.color = Color.white;
             text.alignment = TextAlignmentOptions.Center; text.raycastTarget = false;
         }
 

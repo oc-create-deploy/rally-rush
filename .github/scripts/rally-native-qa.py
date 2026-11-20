@@ -95,7 +95,9 @@ route=[];boss_taps=0;deadline=time.time()+180
 while time.time()<deadline:
     snapshot=state();values={v['key']:v['value'] for v in snapshot['values']}
     buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]
-    if any(i.get('text')=='RUN AGAIN' for i in buttons):break
+    if any(i.get('text')=='RUN AGAIN' for i in buttons):
+        time.sleep(.6) # Let the actual win popup animation finish before capture/input.
+        break
     if any(i['name']=='Restart' for i in buttons):
         capture('failure-winning-route');raise AssertionError(('Positive-gate route lost',route,values))
     if values.get('BattleController.canStart')=='True':
