@@ -37,9 +37,35 @@ namespace _Scripts.Core
             levelText.text = "LEVEL " + (FindObjectOfType<LevelController>().currentLevel + 1);
             SetPlayerCountText(GameFlowManager.Instance.GetPlayerCount());
             LabelButton(startButton.GetComponent<Button>(), "START / SWIPE TO STEER");
+            // Missing legacy decorative sprites must not become opaque white overlays.
+            foreach (var image in startButtonBack.GetComponentsInChildren<Image>(true))
+            { image.color = Color.clear; image.raycastTarget = false; }
+            foreach (var image in allPanelsBack.GetComponentsInChildren<Image>(true))
+                image.color = new Color(.06f, .1f, .18f, .65f);
+            LabelPopup(gameOverPanel, "RUN ENDED");
+            LabelPopup(gameWinPanel, "RALLY COMPLETE");
             foreach (Button button in FindObjectsOfType<Button>(true))
-                if (button.name == "SettingsButton") LabelButton(button, "MENU");
+                {
+                    if (button.name == "SettingsButton") LabelButton(button, "MENU");
+                    if (button.name == "Restart") LabelButton(button, "RETRY");
+                }
             GameFlowManagerOnGameStateChange(GameFlowManager.Instance.state);
+        }
+
+        private static void LabelPopup(GameObject popup, string title)
+        {
+            // Reuse the existing popup layout and actions, supplying a readable title.
+            var image = popup.GetComponent<Image>();
+            if (image != null) image.color = new Color(.1f, .17f, .27f, .95f);
+            var go = new GameObject("Outcome title", typeof(RectTransform));
+            go.transform.SetParent(popup.transform, false);
+            var text = go.AddComponent<TextMeshProUGUI>();
+            var rect = text.rectTransform;
+            rect.anchorMin = new Vector2(.1f, .65f); rect.anchorMax = new Vector2(.9f, .9f);
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            text.font = Resources.Load<TMP_FontAsset>("RallyFont");
+            text.text = title; text.fontSize = 48; text.color = Color.white;
+            text.alignment = TextAlignmentOptions.Center; text.raycastTarget = false;
         }
 
         private static void LabelButton(Button button, string label)

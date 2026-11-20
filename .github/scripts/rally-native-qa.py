@@ -43,7 +43,7 @@ def action(body):
     p=out/f'input-{seq:03}.yaml'
     p.write_text(f'appId: {bundle}\n---\n'+body+'\n')
     bridge.action(body)
-    time.sleep(1)
+    time.sleep(.1)
 
 def tap(text):
     choices=[i for i in state()['items'] if i['kind']=='button' and i['interactable'] and text.casefold() in (i.get('text','').strip().casefold(),i['name'].strip().casefold())]
@@ -51,14 +51,16 @@ def tap(text):
     action('- tapOn:\n    point: "'+point(choices[0])+'"')
 
 def val(key):return next(v['value'] for v in state()['values'] if v['key']==key)
+# Start the native driver without starting the run; ignore harmless track touch.
+action('- tapOn:\n    point: "90%, 40%"')
 capture('01-startup')
 start=[i for i in state()['items'] if i['kind']=='button' and i['interactable'] and any(t in (i['name']+' '+i['text']).casefold() for t in ['start','play'])]
 assert start,('Native start control missing',[(i['name'],i['text']) for i in state()['items'] if i['kind']=='button'])
-action('- tapOn:\n    point: "'+point(start[0])+'"');time.sleep(2)
-assert val('GameFlowManager.state')!='Start','Native start tap did not begin gameplay'
-capture('02-gameplay')
+action('- tapOn:\n    point: "'+point(start[0])+'"')
+assert val('GameFlowManager.state')=='Game','Native start must be observed during active gameplay, not after a terminal popup'
 before_position=val('ArmyMovementController.position')
 action('- swipe:\n    start: "50%, 75%"\n    end: "75%, 75%"\n    duration: 3000')
+capture('02-gameplay')
 capture('03-steered')
 def xyz(value):return tuple(float(x.strip()) for x in value.strip('()').split(','))
 before=xyz(before_position);after=xyz(val('ArmyMovementController.position'))
