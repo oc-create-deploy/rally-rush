@@ -76,6 +76,7 @@ namespace _Scripts.Core
             if (image == null) image = popup.AddComponent<Image>();
             image.color = new Color(.1f, .17f, .27f, .98f);
             image.raycastTarget = false;
+            foreach (var button in popup.GetComponentsInChildren<Button>(true)) EnsureButtonSurface(button);
             var go = new GameObject("Outcome title", typeof(RectTransform));
             go.transform.SetParent(popup.transform, false);
             var text = go.AddComponent<TextMeshProUGUI>();
@@ -87,9 +88,22 @@ namespace _Scripts.Core
             text.alignment = TextAlignmentOptions.Center; text.raycastTarget = false;
         }
 
+        private static void EnsureButtonSurface(Button button)
+        {
+            // Legacy prefabs can point targetGraphic at a decorative parent Image.
+            // Give each action its own visible, raycastable surface instead.
+            var surface = button.GetComponent<Image>();
+            if (surface == null) surface = button.gameObject.AddComponent<Image>();
+            surface.sprite = null;
+            surface.color = Color.white;
+            surface.raycastTarget = true;
+            button.targetGraphic = surface;
+        }
+
         private static void LabelButton(Button button, string label)
         {
             if (button == null) return;
+            EnsureButtonSurface(button);
             var text = button.GetComponentInChildren<TextMeshProUGUI>(true);
             if (text == null)
             {
