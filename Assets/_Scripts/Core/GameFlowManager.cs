@@ -48,8 +48,7 @@ namespace _Scripts.Core
 
         public void LoadNewLevel()
         {
-            levelController.NextLevel();
-            SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+            levelController.NextLevel(); // Owns the single scene transition.
         }
         
         public void UpdateGameState(GameState newState)

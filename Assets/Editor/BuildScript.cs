@@ -10,6 +10,7 @@ public static class BuildScript
 {
     public static void BuildIos()
     {
+        PrepareFonts();
         const string outputPath = "build/iOS";
         bool simulator = string.Equals(Environment.GetEnvironmentVariable("UNITY_IOS_SIMULATOR"), "true", StringComparison.OrdinalIgnoreCase);
         var haptics = AssetImporter.GetAtPath("Assets/NiceVibrations/Plugins/iOS/LofeltHaptics.framework") as PluginImporter;
@@ -77,4 +78,47 @@ public static class BuildScript
         plist.root.SetBoolean("ITSAppUsesNonExemptEncryption", false);
         plist.WriteToFile(plistPath);
     }
+    private static void PrepareFonts()
+    {
+        // Essentials are committed with original Unity GUIDs for headless builds.
+        if (Shader.Find("TextMeshPro/Distance Field") == null)
+            throw new InvalidOperationException("Committed TMP Essentials distance field shader is missing");
+        const string fontPath = "Assets/Resources/RallySans.ttf";
+        AssetDatabase.ImportAsset(fontPath, ImportAssetOptions.ForceUpdate);
+        var importer = (TrueTypeFontImporter)AssetImporter.GetAtPath(fontPath);
+        importer.includeFontData = true;
+        importer.SaveAndReimport();
+        AssetDatabase.DeleteAsset("Assets/Resources/RallyFont.asset");
+        var font = AssetDatabase.LoadAssetAtPath<Font>(fontPath);
+        var asset = TMPro.TMP_FontAsset.CreateFontAsset(font);
+        if (asset == null) throw new InvalidOperationException("Bundled Rally font generation failed");
+        asset.name = "RallyFont";
+        AssetDatabase.CreateAsset(asset, "Assets/Resources/RallyFont.asset");
+        AssetDatabase.AddObjectToAsset(asset.material, asset);
+        foreach (var texture in asset.atlasTextures)
+            if (texture != null) AssetDatabase.AddObjectToAsset(texture, asset);
+        var settingsPath = AssetDatabase.FindAssets("t:TMP_Settings").Select(AssetDatabase.GUIDToAssetPath).FirstOrDefault();
+        var settings = settingsPath != null
+            ? AssetDatabase.LoadAssetAtPath<TMPro.TMP_Settings>(settingsPath)
+            : ScriptableObject.CreateInstance<TMPro.TMP_Settings>();
+        var serialized = new SerializedObject(settings);
+        serialized.FindProperty("m_defaultFontAsset").objectReferenceValue = asset;
+        serialized.ApplyModifiedPropertiesWithoutUndo();
+        if (settingsPath == null) AssetDatabase.CreateAsset(settings, "Assets/Resources/TMP Settings.asset");
+        else EditorUtility.SetDirty(settings);
+        AssetDatabase.SaveAssets();
+        foreach (var entry in EditorBuildSettings.scenes.Where(s => s.enabled))
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(entry.path);
+            foreach (var root in scene.GetRootGameObjects())
+                foreach (var text in root.GetComponentsInChildren<TMPro.TMP_Text>(true))
+                {
+                    text.font = asset;
+                    text.fontSharedMaterial = asset.material;
+                    EditorUtility.SetDirty(text);
+                }
+            UnityEditor.SceneManagement.EditorSceneManager.SaveScene(scene);
+        }
+    }
+
 }
