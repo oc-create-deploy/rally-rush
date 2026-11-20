@@ -4,6 +4,7 @@ using _Scripts.Core;
 using _Scripts.Utilities;
 using DG.Tweening;
 using UnityEngine;
+using TMPro;
 
 namespace _Scripts.Models
 {
@@ -24,6 +25,36 @@ namespace _Scripts.Models
         }
         
         
+        private TextMeshPro gateLabel;
+        public string OperationLabel => _corridorType switch
+        {
+            Constants.CorridorTypes.Increase => "+" + increaseAmount,
+            Constants.CorridorTypes.Decrease => "-" + decreaseAmount,
+            Constants.CorridorTypes.Multiply => "x" + multiplyAmount,
+            Constants.CorridorTypes.Divide => "/" + divideAmount,
+            _ => "?"
+        };
+        private void Start()
+        {
+            var go = new GameObject("Gate operation");
+            go.transform.SetParent(transform, false);
+            gateLabel = go.AddComponent<TextMeshPro>();
+            gateLabel.font = Resources.Load<TMP_FontAsset>("RallyFont");
+            gateLabel.text = OperationLabel;
+            gateLabel.fontSize = 12; gateLabel.alignment = TextAlignmentOptions.Center;
+            gateLabel.color = Color.white; gateLabel.outlineWidth = .2f;
+            gateLabel.rectTransform.sizeDelta = new Vector2(3, 1.5f);
+        }
+        private void LateUpdate()
+        {
+            if (gateLabel == null || Camera.main == null) return;
+            gateLabel.transform.position = GetComponent<Collider>().bounds.center + new Vector3(0, .7f, -.6f);
+            gateLabel.transform.rotation = Camera.main.transform.rotation;
+            // Parent gates are scaled differently; labels have a consistent world size.
+            var scale = transform.lossyScale;
+            gateLabel.transform.localScale = new Vector3(1 / scale.x, 1 / scale.y, 1 / scale.z);
+        }
+
         public Constants.CorridorTypes GetCorridorType()
         {
             return _corridorType;

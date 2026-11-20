@@ -94,6 +94,14 @@ public sealed class NativeQaRecorder : MonoBehaviour
                 }
                 if((c is Text || type.Contains("TextMeshPro")) && !hidden)
                 {var item=Entry(c,"text");item.text=Read(c,"text") as string;state.items.Add(item);}
+                if(type=="Corridor")
+                {
+                    var item=Entry(c,"gate");item.text=Read(c,"OperationLabel") as string;
+                    var collider=c.GetComponent<Collider>();
+                    item.interactable=collider!=null && collider.enabled;
+                    item.shape.Add(new Vector2(c.transform.position.x,c.transform.position.z));
+                    state.items.Add(item);
+                }
                 if(type=="TubeController")
                 {
                     var item=Entry(c,"tube");var collider=c.GetComponentInChildren<Collider2D>();

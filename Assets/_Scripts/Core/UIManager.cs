@@ -48,6 +48,8 @@ namespace _Scripts.Core
                 {
                     if (button.name == "SettingsButton") LabelButton(button, "MENU");
                     if (button.name == "Restart") LabelButton(button, "RETRY");
+                    if (button.onClick.GetPersistentEventCount() > 0 && button.onClick.GetPersistentMethodName(0) == "NextLevelButton") LabelButton(button, "RUN AGAIN");
+                    if (button.onClick.GetPersistentEventCount() > 0 && button.onClick.GetPersistentMethodName(0) == "Decrease") LabelButton(button, "TAP TO PUSH");
                 }
             GameFlowManagerOnGameStateChange(GameFlowManager.Instance.state);
         }
@@ -64,7 +66,7 @@ namespace _Scripts.Core
             rect.anchorMin = new Vector2(.1f, .65f); rect.anchorMax = new Vector2(.9f, .9f);
             rect.offsetMin = rect.offsetMax = Vector2.zero;
             text.font = Resources.Load<TMP_FontAsset>("RallyFont");
-            text.text = title; text.fontSize = 48; text.color = Color.white;
+            text.text = title; text.fontSize = 48; text.color = new Color(.12f, .22f, .3f);
             text.alignment = TextAlignmentOptions.Center; text.raycastTarget = false;
         }
 
