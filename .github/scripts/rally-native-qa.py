@@ -19,7 +19,12 @@ def state():
                 s=json.loads(p.read_text())
                 assert not s['errors'],s['errors']
                 if s["frame"] >= 30:
-                    assert time.time()-s['utcSeconds']<10,('Stale native observation',s['frame'])
+                    if time.time()-s['utcSeconds']>=10:
+                        # Hosted simulator/file I/O may briefly stall. Never
+                        # use this stale model for an input/acceptance decision.
+                        (out/'last-stale-observation.json').write_text(json.dumps(s,indent=2))
+                        time.sleep(.2)
+                        continue
                     snapshot_path=p
                     return s
             except (json.JSONDecodeError,FileNotFoundError): pass

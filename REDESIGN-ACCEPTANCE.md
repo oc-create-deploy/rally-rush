@@ -168,3 +168,12 @@ geometry; NOT yet complete redesigned course/clash/finale. Camera keeps both lan
 centered during steering. Scene teardown kills old tweens to address null-target
 warnings. Native harness now requires actual level+1 and cold-level persistence.
 Syntax/diff checks pass; new Unity/native compilation and visual proof pending.
+
+21:39 native44951269887 FAIL at initial real start: recorderframe5029 older
+than10s rejected immediately after button input. Startup image inspected centered
+track/both choices; final RUN ENDED. Actual decrease-gate log shows app progressed,
+so no new crash proven. Host waits within existing90s observation budget for a
+FRESH (<10s) snapshot, preserving stale raw JSON, never using stale state for
+input/acceptance. New stages/next-level/cold-level still unproven. No weakened
+gameplay gate or full product claim. Artifact14726295791 CRC checked in memory;
+original PNG/JSON/logs retained locally, video retained in GitHub artifact.
