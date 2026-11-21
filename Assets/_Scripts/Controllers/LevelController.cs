@@ -32,6 +32,10 @@ public class LevelController : MonoBehaviour
             g.increaseAmount=g.decreaseAmount=g.multiplyAmount=g.divideAmount=n;
         }
         Constants.SPEED_COEFFICIENT=3.5f+stage*.35f;
+        var rivals=new GameObject("Rival crowd encounter");
+        rivals.transform.SetParent(course.transform,false);rivals.transform.position=new Vector3(.45f,2f,82f);
+        var trigger=rivals.AddComponent<BoxCollider>();trigger.isTrigger=true;trigger.size=new Vector3(7,3,.6f);
+        rivals.AddComponent<_Scripts.Controllers.MiniBattleController>().corridorEnemyCount=6+stage*6;
     }
     public void NextLevel()
     {

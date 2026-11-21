@@ -177,3 +177,21 @@ FRESH (<10s) snapshot, preserving stale raw JSON, never using stale state for
 input/acceptance. New stages/next-level/cold-level still unproven. No weakened
 gameplay gate or full product claim. Artifact14726295791 CRC checked in memory;
 original PNG/JSON/logs retained locally, video retained in GitHub artifact.
+
+22:07 diagnostic44952775563 SUCCESS: actual NEXT LEVEL0->1, different +12/x2
+then -15/x3 labels, cold earnedlevel1/best205 verified.90 countconsistent samples,
+real pause/resume visible21 crowd. All10PNG inspected rally-phase6-contact.png;
+02 moving image clips runner/gates,03 already RUNENDED, so no full moving-visual
+acceptance. Paused image still clips right edge of crowd. No missing-target tween
+warning found in this runtime log. Clash/finale absent; full product pending.
+Artifact14727232095 CRC verified in memory; original PNG/JSON/logs retained locally,
+video retained remotely, avoiding duplicate large movie with low disk headroom.
+
+New source iteration inserts a real full-width encounter at z82: original red
+stylized humanoid rivals (6/12/18 by stage), labelled remaining enemy count,
+visible individuals removed as actual paired attrition reduces both armies.
+Existing guarded MiniBattle drives actual count/loss/survival and real pause
+freezes it; optional particle handling supports this encounter without imported
+cat effects. New native capture explicitly pauses the clash and labels it so.
+Compile/native visuals/exact clash outcomes UNPROVEN. Finale remains old tap/roll
+and still needs product correction, plus course dressing/moving capture/background.

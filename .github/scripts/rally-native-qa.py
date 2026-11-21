@@ -158,7 +158,7 @@ while time.time()<deadline:
     if not captured_growth and count_mismatch_since is None and int(values['RadialFormation.amount'])>1 and values.get('GameFlowManager.state')=='Game':
         frozen_capture('09-grown-crowd-paused');captured_growth=True;continue
     if not captured_clash and values.get('GameFlowManager.state')=='MiniBattle':
-        capture('10-clash');captured_clash=True;continue
+        frozen_capture('10-clash-paused');captured_clash=True;continue
     if not captured_finale and values.get('BattleController.canEject')=='True':
         capture('11-finale-roll');captured_finale=True;continue
     buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]

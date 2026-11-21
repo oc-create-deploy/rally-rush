@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using _Scripts.Core;
 using UnityEngine;
+using System.Collections.Generic;
+using TMPro;
 
 namespace _Scripts.Controllers
 {
@@ -12,11 +14,51 @@ namespace _Scripts.Controllers
         public ParticleSystem bossFightParticle;
         private GameObject createdParticleSystem;
         private bool engaged;
+        private readonly List<GameObject> enemyRunners=new List<GameObject>();
+        private TextMeshPro enemyLabel;
+        private Material enemyKit;
+        private Transform MakePart(Transform parent,string name,Vector3 at,Vector3 size,PrimitiveType type)
+        {
+            var part=GameObject.CreatePrimitive(type);part.name=name;part.transform.SetParent(parent,false);
+            part.transform.localPosition=at;part.transform.localScale=size;
+            part.GetComponent<Collider>().enabled=false;Destroy(part.GetComponent<Collider>());
+            part.GetComponent<Renderer>().sharedMaterial=enemyKit;return part.transform;
+        }
+        private void Update()
+        {
+            while(enemyRunners.Count>Mathf.Max(0,corridorEnemyCount))
+            {var unit=enemyRunners[enemyRunners.Count-1];enemyRunners.RemoveAt(enemyRunners.Count-1);Destroy(unit);}
+            for(int i=0;i<enemyRunners.Count;i++)
+                enemyRunners[i].transform.localRotation=Quaternion.Euler(Mathf.Sin(Time.time*9+i)*8,180,0);
+            if(enemyLabel!=null && Camera.main!=null)
+            {enemyLabel.text="RIVALS " + Mathf.Max(0,corridorEnemyCount);enemyLabel.transform.rotation=Camera.main.transform.rotation;}
+        }
         
         private void Start()
         {
             _getWait = new WaitForSeconds(0.2F);
+            var basis=FindObjectOfType<MeshRenderer>();
+            enemyKit=basis!=null && basis.sharedMaterial!=null ? new Material(basis.sharedMaterial) : new Material(Shader.Find("Standard"));
+            enemyKit.color=new Color(.93f,.16f,.22f);
+            for(int i=0;i<corridorEnemyCount;i++)
+            {
+                var unit=new GameObject("Original rival runner "+i);unit.transform.SetParent(transform,false);
+                unit.transform.localPosition=new Vector3((i%5-2)*.55f,0,2+(i/5)*.6f);
+                MakePart(unit.transform,"Vest",new Vector3(0,.55f,0),new Vector3(.36f,.45f,.25f),PrimitiveType.Cube);
+                MakePart(unit.transform,"Head",new Vector3(0,.93f,0),Vector3.one*.27f,PrimitiveType.Sphere);
+                MakePart(unit.transform,"Left leg",new Vector3(-.1f,.17f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Cube);
+                MakePart(unit.transform,"Right leg",new Vector3(.1f,.17f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Cube);
+                MakePart(unit.transform,"Left arm",new Vector3(-.26f,.55f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Cube);
+                MakePart(unit.transform,"Right arm",new Vector3(.26f,.55f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Cube);
+                enemyRunners.Add(unit);
+            }
+            var label=new GameObject("Rival count");label.transform.SetParent(transform,false);label.transform.localPosition=new Vector3(0,1.7f,2);
+            enemyLabel=label.AddComponent<TextMeshPro>();enemyLabel.font=Resources.Load<TMP_FontAsset>("RallyFont");
+            enemyLabel.fontSize=5;enemyLabel.alignment=TextAlignmentOptions.Center;enemyLabel.color=Color.white;
+            enemyLabel.rectTransform.sizeDelta=new Vector2(4,1);
         }
+
+        private void OnDestroy(){if(enemyKit!=null)Destroy(enemyKit);}
 
         private void OnTriggerEnter(Collider other)
         {
@@ -27,9 +69,12 @@ namespace _Scripts.Controllers
             AudioManager.Instance.PlayFightSound(AudioManager.Instance.cartoonFightSound );
             this.GetComponent<Collider>().enabled = false;
             GameFlowManager.Instance.UpdateGameState(GameState.MiniBattle);
-            createdParticleSystem = Instantiate(bossFightParticle).gameObject;
-            createdParticleSystem.transform.localScale = new Vector3(3, 3, 3);
-            createdParticleSystem.transform.position = this.transform.position;
+            if(bossFightParticle!=null)
+            {
+                createdParticleSystem = Instantiate(bossFightParticle).gameObject;
+                createdParticleSystem.transform.localScale = new Vector3(3, 3, 3);
+                createdParticleSystem.transform.position = this.transform.position;
+            }
             StartCoroutine(DecreaseArmyOverTime(formation));
         }
 
