@@ -110,3 +110,15 @@ runner contacts, engages once and stops when either side reaches zero, including
 zero-enemy edge case. Recorder writes atomic timestamped snapshots. New source
 must compile and be tested; redesigned escalating course/clash/finale and full
 exact-arithmetic/native visual acceptance still required before release.
+
+### Next native diagnostic harness — 19:41 UTC
+
+The host now checks raw consumed gate before/after arithmetic, unchanged repeated
+observations and one applied choice per row, requires at least two actual gates,
+and compares actual spawned-unit count / formation / GameFlow count. Physics and
+coroutine transitions get a bounded .5s raw convergence window; every mismatch is
+retained and prolonged drift fails. A moving grown-crowd image is required. Clash
+and finale-roll captures are attempted and explicitly reported missing if not
+observed; this diagnostic does not claim full redesign acceptance or next levels.
+Reuses Metro's proven no-input driver keepalive and longer initial installation
+budget. Python syntax/diff checks pass; actual new native evidence still pending.

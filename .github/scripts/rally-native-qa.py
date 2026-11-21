@@ -4,19 +4,24 @@ out = pathlib.Path('screenshots'); out.mkdir(exist_ok=True)
 udid = os.environ['UDID']; bundle = os.environ['APP_BUNDLE_ID']
 container = pathlib.Path(subprocess.check_output(['xcrun','simctl','get_app_container',udid,bundle,'data'],text=True).strip())
 seq = 0
+snapshot_path = None
 import importlib.util
 spec=importlib.util.spec_from_file_location('touchbridge',pathlib.Path(__file__).with_name('native-touch-bridge.py'))
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 bridge=module.TouchBridge(out,udid,bundle)
 
 def state():
+    global snapshot_path
     deadline = time.time()+90
     while time.time()<deadline:
-        for p in container.rglob('qa-state.json'):
+        for p in ([snapshot_path] if snapshot_path is not None else container.rglob('qa-state.json')):
             try:
                 s=json.loads(p.read_text())
                 assert not s['errors'],s['errors']
-                if s["frame"] >= 30: return s
+                if s["frame"] >= 30:
+                    assert time.time()-s['utcSeconds']<10,('Stale native observation',s['frame'])
+                    snapshot_path=p
+                    return s
             except (json.JSONDecodeError,FileNotFoundError): pass
         time.sleep(.5)
     probe_errors=list(container.rglob('qa-recorder-error.txt'))
@@ -91,9 +96,48 @@ capture('05-retry')
 tap('StartButton')
 start_deadline=time.time()+3
 while val('GameFlowManager.state')=='Start' and time.time()<start_deadline:time.sleep(.1)
-route=[];boss_taps=0;deadline=time.time()+180
+route=[];boss_taps=0;deadline=time.time()+240
+gate_history={};captured_growth=False;captured_clash=False;captured_finale=False;consistent_samples=0
+count_mismatch_since=None
+count_mismatches=[]
+
+def audit_crowd(snapshot, values):
+    global consistent_samples,count_mismatch_since
+    amount=int(values['RadialFormation.amount'])
+    counts=(amount,int(values['GameFlowManager.playerCount']),int(values['ArmyController.VisibleUnitCount']))
+    if len(set(counts))!=1:
+        # Physics contacts/coroutines can change amount after that frame's
+        # formation FixedUpdate. Require raw convergence within .5 seconds,
+        # retaining every mismatch rather than accepting stale visible counts.
+        if count_mismatch_since is None:count_mismatch_since=snapshot['utcSeconds']
+        count_mismatches.append({'frame':snapshot['frame'],'utcSeconds':snapshot['utcSeconds'],'counts':counts})
+        (out/'count-transitions.json').write_text(json.dumps(count_mismatches,indent=2))
+        assert snapshot['utcSeconds']-count_mismatch_since<=.5,('Persistent visible/HUD/model count drift',counts)
+    else:
+        count_mismatch_since=None;consistent_samples+=1
+    for gate in snapshot['items']:
+        if gate['kind']!='gate' or not gate.get('consumed') or gate.get('before',0)<=0:continue
+        op=gate['text'];n=int(op[1:]);before=gate['before']
+        expected=before+n if op[0]=='+' else before-n if op[0]=='-' else before*n if op[0]=='x' else before//n
+        assert gate['after']==max(0,expected),('Actual gate arithmetic mismatch',gate,expected)
+        previous=gate_history.get(str(gate['id']))
+        proof={'operation':op,'before':before,'after':gate['after'],'rowZ':gate['shape'][0]['y']}
+        assert previous is None or previous==proof,('Gate applied repeatedly',previous,proof)
+        gate_history[str(gate['id'])]=proof
+    rows={}
+    for proof in gate_history.values():
+        row=round(proof['rowZ'],1);rows[row]=rows.get(row,0)+1
+    assert all(n==1 for n in rows.values()),('Both paired gates applied',gate_history)
+    (out/'gate-arithmetic.json').write_text(json.dumps(gate_history,indent=2))
 while time.time()<deadline:
     snapshot=state();values={v['key']:v['value'] for v in snapshot['values']}
+    audit_crowd(snapshot,values)
+    if not captured_growth and count_mismatch_since is None and int(values['RadialFormation.amount'])>1 and values.get('GameFlowManager.state')=='Game':
+        capture('09-grown-crowd-moving');captured_growth=True;continue
+    if not captured_clash and values.get('GameFlowManager.state')=='MiniBattle':
+        capture('10-clash');captured_clash=True;continue
+    if not captured_finale and values.get('BattleController.canEject')=='True':
+        capture('11-finale-roll');captured_finale=True;continue
     buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]
     if any(i.get('text')=='RUN AGAIN' for i in buttons):
         time.sleep(.6) # Let the actual win popup animation finish before capture/input.
@@ -123,6 +167,9 @@ while time.time()<deadline:
     time.sleep(.15)
 else:
     capture('failure-win-timeout');raise AssertionError(('Real winning route timed out',route))
+assert len(gate_history)>=2,('Need at least two actually applied gates',gate_history)
+assert captured_growth,'Native moving grown crowd capture missing'
+(out/'phase2-diagnostic.json').write_text(json.dumps({'gateArithmetic':gate_history,'consistentCountSamples':consistent_samples,'growthCapture':captured_growth,'clashCapture':captured_clash,'finaleCapture':captured_finale,'fullRedesignAcceptance':False},indent=2))
 (out/'route.json').write_text(json.dumps(route,indent=2))
 capture('06-win')
 won_best=int(val('ScoreManager.bestScore'))

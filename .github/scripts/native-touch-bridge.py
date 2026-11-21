@@ -10,7 +10,14 @@ class TouchBridge:
             def do_GET(self):
                 if self.path!='/next':self.send_error(404);return
                 if bridge.previous is not None:bridge.previous.set()
-                command,event=bridge.pending.get(timeout=900)
+                try:
+                    command,event=bridge.pending.get(timeout=5)
+                except queue.Empty:
+                    # Direct XCUITest input bypasses this queue. Keep the
+                    # Maestro script alive without a 900s HTTP long-poll
+                    # (44929021462 JsEvaluationException: timeout). No input
+                    # or gameplay mutation is performed by this heartbeat.
+                    command,event={'kind':'idle'},None
                 bridge.previous=event
                 body=json.dumps(command).encode();self.send_response(200);self.send_header('Content-Type','application/json');self.send_header('Content-Length',str(len(body)));self.end_headers();self.wfile.write(body)
         self.server=http.server.ThreadingHTTPServer(('127.0.0.1',0),Handler)
@@ -21,7 +28,7 @@ class TouchBridge:
 ---
 - runScript: next-input.js
 - repeat:
-    times: 150
+    times: 1000
     while:
       true: ${output.command.kind != 'done'}
     commands:
@@ -44,11 +51,16 @@ class TouchBridge:
             self.swipe(values[0],values[1]);return
         command={'kind':'tap','point':values[0]}
         event=threading.Event();self.pending.put((command,event))
-        if self.proc is None:self.proc=subprocess.Popen(self.command,stdout=self.log,stderr=subprocess.STDOUT)
-        deadline=time.time()+360
+        starting=self.proc is None
+        if starting:self.proc=subprocess.Popen(self.command,stdout=self.log,stderr=subprocess.STDOUT)
+        # First XCUITest installation/launch exceeded 360s on a loaded hosted
+        # simulator (44885312976); initial tap completed after timeout. Keep
+        # gameplay input separately bounded, without restarting the driver.
+        budget=720 if starting else 60
+        deadline=time.time()+budget
         while not event.wait(1):
             if self.proc.poll() is not None:raise AssertionError('Persistent native driver exited: '+(self.out/'persistent-input.log').read_text()[-3000:])
-            if time.time()>deadline:raise TimeoutError('Native input exceeded 360 seconds; inspect persistent-input.log')
+            if time.time()>deadline:raise TimeoutError(f'Native input exceeded {budget} seconds (startup={starting}); inspect persistent-input.log')
     def native_request(self, base, endpoint, payload):
         req=urllib.request.Request(base+'/'+endpoint,data=json.dumps(payload).encode(),headers={'Content-Type':'application/json'},method='POST')
         with urllib.request.urlopen(req,timeout=60) as response:return response.read()
