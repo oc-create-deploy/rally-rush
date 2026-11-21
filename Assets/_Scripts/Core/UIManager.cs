@@ -64,7 +64,7 @@ namespace _Scripts.Core
                 {
                     if (button.name == "SettingsButton") LabelButton(button, "MENU");
                     if (button.name == "Restart") LabelButton(button, "RETRY");
-                    if (button.onClick.GetPersistentEventCount() > 0 && button.onClick.GetPersistentMethodName(0) == "NextLevelButton") LabelButton(button, "RUN AGAIN");
+                    if (button.onClick.GetPersistentEventCount() > 0 && button.onClick.GetPersistentMethodName(0) == "NextLevelButton") LabelButton(button, "NEXT LEVEL");
                     if (button.onClick.GetPersistentEventCount() > 0 && button.onClick.GetPersistentMethodName(0) == "Decrease") LabelButton(button, "TAP TO PUSH");
                 }
             foreach (Button button in gameWinPanel.GetComponentsInChildren<Button>(true))
@@ -72,7 +72,7 @@ namespace _Scripts.Core
                 if (button.name != "Restart" && button.name != "NextLevel") continue;
                 button.onClick = new Button.ButtonClickedEvent();
                 button.onClick.AddListener(NextLevelButton);
-                LabelButton(button, "RUN AGAIN");
+                LabelButton(button, "NEXT LEVEL");
             }
             var score = ScoreManager.Instance.endGameScoreText;
             score.rectTransform.anchorMin = score.rectTransform.anchorMax = new Vector2(.5f, .42f);

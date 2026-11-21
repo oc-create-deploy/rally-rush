@@ -157,7 +157,7 @@ while time.time()<deadline:
     if not captured_finale and values.get('BattleController.canEject')=='True':
         capture('11-finale-roll');captured_finale=True;continue
     buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]
-    if any(i.get('text')=='RUN AGAIN' for i in buttons):
+    if any(i.get('text')=='NEXT LEVEL' for i in buttons):
         time.sleep(.6) # Let the actual win popup animation finish before capture/input.
         break
     if any(i['name']=='Restart' for i in buttons):
@@ -190,10 +190,12 @@ assert captured_growth,'Native moving grown crowd capture missing'
 (out/'phase2-diagnostic.json').write_text(json.dumps({'gateArithmetic':gate_history,'consistentCountSamples':consistent_samples,'growthCapture':captured_growth,'clashCapture':captured_clash,'finaleCapture':captured_finale,'fullRedesignAcceptance':False},indent=2))
 (out/'route.json').write_text(json.dumps(route,indent=2))
 capture('06-win')
+won_level=int(val('LevelController.currentLevel'))
 won_best=int(val('ScoreManager.bestScore'))
 assert won_best>0, 'Actual win must record a positive best score'
-tap('RUN AGAIN');time.sleep(4)
-assert val('GameFlowManager.state')=='Start','Win replay failed'
+tap('NEXT LEVEL');time.sleep(4)
+assert val('GameFlowManager.state')=='Start','Next level start failed'
+assert int(val('LevelController.currentLevel'))==won_level+1,'Earned next level did not advance'
 capture('07-win-replay')
 result=json.loads((out/'result.json').read_text());result.update({'realPositiveGateRunWon':True,'bossNativeTouches':boss_taps,'winReplay':True,'winAndProgressPersistence':'PERSISTENCE_PENDING'})
 (out/'result.json').write_text(json.dumps(result,indent=2))
@@ -208,6 +210,7 @@ snapshot_path = None
 time.sleep(4)
 assert int(val('ScoreManager.bestScore'))==won_best,'Earned best score did not survive cold launch'
 assert val('GameFlowManager.state')=='Start','Cold launch did not restore a playable start'
+assert int(val('LevelController.currentLevel'))==won_level+1,'Earned level did not survive cold launch'
 capture('08-cold-restored')
 result.update({'earnedBestScore':won_best,'earnedBestScoreColdLaunchVerified':True,'winAndProgressPersistence':True})
 (out/'result.json').write_text(json.dumps(result,indent=2))

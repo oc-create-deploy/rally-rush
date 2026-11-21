@@ -31,7 +31,7 @@ namespace _Scripts.Core
         }
         private void OnApplicationPause(bool paused)
         { if(paused && !playerPaused)TogglePlayerPause(); }
-        private void OnDestroy(){Time.timeScale=1;}
+        private void OnDestroy(){DG.Tweening.DOTween.KillAll();Time.timeScale=1;}
 
         public static event Action<GameState> onGameStateChange;
 

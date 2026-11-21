@@ -152,3 +152,19 @@ mode missing/null target warnings on scene replay; fix lifecycle before final
 acceptance. Clash/finale captures absent; level remains0 and gate text still clips.
 Archive44946132951.zip CRC checked; all9PNG inspected rally-phase3-contact.png.
 No full product acceptance/release.
+
+21:04 diagnostic44947738339 SUCCESS: cold score205 verified after path rediscovery,
+80 count-consistent samples, gate1->21->84, real pause/resume and visible21 crowd.
+All10PNG inspected: first moving-labelled images actually show RUN ENDED (capture
+delay), so not moving-visual acceptance. Replay image has simulator notification;
+not a store screenshot. Clash/finale remain absent. Complete artifact CRC checked
+in memory; original PNG/JSON/logs retained locally; large video retained in GitHub
+artifact14724937312 (not copied locally due disk headroom).
+
+Next product source iteration: three authored math-choice variants (+20/-10 then
+/3/x4; +12/x2 then -15/x3; x3/+8 then /2/+15), modest escalating forward speed,
+earned NEXT LEVEL advances saved level instead of clamping to0. Reuses course
+geometry; NOT yet complete redesigned course/clash/finale. Camera keeps both lanes
+centered during steering. Scene teardown kills old tweens to address null-target
+warnings. Native harness now requires actual level+1 and cold-level persistence.
+Syntax/diff checks pass; new Unity/native compilation and visual proof pending.
