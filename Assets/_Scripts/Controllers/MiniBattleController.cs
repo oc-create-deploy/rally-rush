@@ -11,6 +11,7 @@ namespace _Scripts.Controllers
         private WaitForSeconds _getWait;
         public ParticleSystem bossFightParticle;
         private GameObject createdParticleSystem;
+        private bool engaged;
         
         private void Start()
         {
@@ -19,42 +20,37 @@ namespace _Scripts.Controllers
 
         private void OnTriggerEnter(Collider other)
         {
+            if(engaged || !other.CompareTag("Cat") || GameFlowManager.Instance.state!=GameState.Game)return;
+            var formation=other.GetComponentInParent<RadialFormation>();
+            if(formation==null)return;
+            engaged=true;
             AudioManager.Instance.PlayFightSound(AudioManager.Instance.cartoonFightSound );
             this.GetComponent<Collider>().enabled = false;
             GameFlowManager.Instance.UpdateGameState(GameState.MiniBattle);
             createdParticleSystem = Instantiate(bossFightParticle).gameObject;
             createdParticleSystem.transform.localScale = new Vector3(3, 3, 3);
             createdParticleSystem.transform.position = this.transform.position;
-            StartCoroutine(DecreaseArmyOverTime(other.transform.parent.GetComponent<RadialFormation>()));
+            StartCoroutine(DecreaseArmyOverTime(formation));
         }
 
         private IEnumerator DecreaseArmyOverTime(RadialFormation otherRadialFormation)
         {
-            while (otherRadialFormation.amount != 0 && otherRadialFormation.amount  != 0) 
+            while (otherRadialFormation.amount > 0 && corridorEnemyCount > 0)
             {
                 corridorEnemyCount -= 1;
                 otherRadialFormation.amount  -= 1;
                 print("enemy count is "  + corridorEnemyCount +"and player amount is " + otherRadialFormation.amount );
 
                 yield return _getWait;
+                while(GameFlowManager.Instance.state==GameState.Pause)yield return null;
                 
-                if (corridorEnemyCount == 0)
-                {
-                    AudioManager.Instance.StopFightSound();
-                    GameFlowManager.Instance.UpdateGameState(GameState.Game);
-                    this.gameObject.SetActive(false);
-                    Destroy(createdParticleSystem);
-                    break;
-                }  
-                if (otherRadialFormation.amount == 0)
-                {
-                    AudioManager.Instance.StopFightSound();
-                    GameFlowManager.Instance.UpdateGameState(GameState.Lose);
-                    this.gameObject.SetActive(false);
-                    Destroy(createdParticleSystem);
-                    break;
-                }
+
             }
+            // Includes a zero-enemy configuration without leaving the run stuck.
+            AudioManager.Instance.StopFightSound();
+            GameFlowManager.Instance.UpdateGameState(otherRadialFormation.amount>0 ? GameState.Game : GameState.Lose);
+            Destroy(createdParticleSystem);
+            gameObject.SetActive(false);
         }
     }
 }

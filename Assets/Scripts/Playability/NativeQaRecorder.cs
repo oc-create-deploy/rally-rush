@@ -15,12 +15,12 @@ public sealed class NativeQaRecorder : MonoBehaviour
     [Serializable] public class Item
     {
         public string kind,name,text;
-        public int id,group;public float x,y;public bool interactable;
+        public int id,group,before,after;public float x,y;public bool interactable,consumed;
         public List<string> colors=new List<string>();public List<Vector2> shape=new List<Vector2>();
     }
     [Serializable] public class Snapshot
     {
-        public string scene;public int frame,width,height;
+        public string scene;public int frame,width,height;public double utcSeconds;
         public float safeX,safeY,safeW,safeH;
         public List<Value> values=new List<Value>();public List<Item> items=new List<Item>();public List<string> errors=new List<string>();
     }
@@ -71,8 +71,10 @@ public sealed class NativeQaRecorder : MonoBehaviour
         {
             Rect safe=Screen.safeArea;
             var state=new Snapshot{scene=SceneManager.GetActiveScene().name,frame=Time.frameCount,width=Screen.width,height=Screen.height,safeX=safe.x,safeY=safe.y,safeW=safe.width,safeH=safe.height,errors=new List<string>(errors)};
+            state.utcSeconds=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/1000.0;
             string[] fields={"Score","Coins","IsPlaying","Remaining","TrayCount","Won","Lost","coins","workers","factories","prestige","best","lane","distance","state","points","recordPoints","playerCount","currentLevel","carryingItem","isGamePaused","amount","startZ","endZ","totalZ","canStart","canEject","bestScore","lastScore"};
-            string[] models={"MetroDashGame","EmpireIdleGame","MatchscapeGame","GameManager","GameController","GameFlowManager","LevelController","PlayerManager","ArmyMovementController","ArmyController","RadialFormation","BattleController","ScoreManager"};
+            fields=fields.Concat(new[]{"VisibleUnitCount","corridorEnemyCount"}).ToArray();
+            string[] models={"MetroDashGame","EmpireIdleGame","MatchscapeGame","GameManager","GameController","GameFlowManager","LevelController","PlayerManager","ArmyMovementController","ArmyController","RadialFormation","BattleController","MiniBattleController","ScoreManager"};
             foreach(MonoBehaviour c in FindObjectsOfType<MonoBehaviour>())
             {
                 if(c==null || !c.isActiveAndEnabled) continue;string type=c.GetType().Name;
@@ -97,6 +99,8 @@ public sealed class NativeQaRecorder : MonoBehaviour
                 if(type=="Corridor")
                 {
                     var item=Entry(c,"gate");item.text=Read(c,"OperationLabel") as string;
+                    item.id=c.GetInstanceID();item.consumed=(bool)Read(c,"consumed");
+                    item.before=(int)Read(c,"appliedBefore");item.after=(int)Read(c,"appliedAfter");
                     var collider=c.GetComponent<Collider>();
                     item.interactable=collider!=null && collider.enabled;
                     item.shape.Add(new Vector2(c.transform.position.x,c.transform.position.z));
@@ -136,7 +140,9 @@ public sealed class NativeQaRecorder : MonoBehaviour
                 Type yg=assembly.GetType("YG.YG2");if(yg==null) continue;
                 FieldInfo f=yg.GetField("saves",BindingFlags.Static|BindingFlags.Public);if(f!=null && f.GetValue(null)!=null) state.values.Add(new Value{key="YG2.saves",value=JsonUtility.ToJson(f.GetValue(null))});break;
             }
-            string path=Path.Combine(Application.persistentDataPath,"qa-state.json");File.WriteAllText(path,JsonUtility.ToJson(state,true));
+            string path=Path.Combine(Application.persistentDataPath,"qa-state.json"),temp=path+".tmp";
+            File.WriteAllText(temp,JsonUtility.ToJson(state,true));
+            if(File.Exists(path))File.Replace(temp,path,null);else File.Move(temp,path);
         }
         catch(Exception e) { File.WriteAllText(Path.Combine(Application.persistentDataPath,"qa-recorder-error.txt"), e.ToString()); }
     }

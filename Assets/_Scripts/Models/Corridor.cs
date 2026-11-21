@@ -18,6 +18,8 @@ namespace _Scripts.Models
         public Constants.CorridorTypes _corridorType;
         [HideInInspector] public MeshRenderer meshRenderer;
         public BoxCollider neighbourCorridorCollider;
+        public bool consumed;
+        public int appliedBefore, appliedAfter;
 
         private void Awake()
         {
@@ -62,13 +64,22 @@ namespace _Scripts.Models
         
         private void OnTriggerExit(Collider other)
         {
-            if (!other.CompareTag("Cat")) return;
+            if (consumed || !other.CompareTag("Cat") || GameFlowManager.Instance.state != GameState.Game) return;
+            var formation=other.GetComponentInParent<RadialFormation>();
+            if(formation==null)return;
+            // Consume both choices BEFORE callbacks can process another crowd unit.
+            consumed=true;
+            if(neighbourCorridorCollider!=null)
+            {
+                var paired=neighbourCorridorCollider.GetComponent<Corridor>();
+                if(paired!=null)paired.consumed=true;
+                neighbourCorridorCollider.enabled=false;
+            }
+            GetComponent<BoxCollider>().enabled=false;
+            appliedBefore=formation.amount;
 
             CorridorController.Instance.CorridorEffect(this, other.gameObject);
-
-            // Disable Corridors
-            neighbourCorridorCollider.enabled = false;
-            this.GetComponent<BoxCollider>().enabled = false;
+            appliedAfter=formation.amount;
             
         }
 

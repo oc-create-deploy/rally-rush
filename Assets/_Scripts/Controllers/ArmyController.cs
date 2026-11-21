@@ -26,6 +26,7 @@ namespace _Scripts.Controllers
             public float startZ;
             public float endZ;
             public float totalZ;
+            public int VisibleUnitCount => _spawnedUnits.Count;
 
 
             private void Start()
@@ -95,6 +96,14 @@ namespace _Scripts.Controllers
         
             private void FixedUpdate() {
                  SetFormation();
+                 // One source of truth after gates, per-unit hazards and clashes.
+                 var radial=GetComponent<RadialFormation>();
+                 if(radial!=null)
+                 {
+                     radial.amount=Mathf.Max(0,radial.amount);
+                     GameFlowManager.Instance.SetPlayerCount(radial.amount);
+                     UIManager.Instance.SetPlayerCountText(radial.amount);
+                 }
                  ProgressBar();
             }
             

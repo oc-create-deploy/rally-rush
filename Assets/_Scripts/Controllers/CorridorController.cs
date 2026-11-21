@@ -12,6 +12,10 @@ namespace _Scripts.Controllers
         public int score  = 0 ;
         public void CorridorEffect(Corridor corridor, GameObject other)
         {
+            var formation=other.GetComponentInParent<RadialFormation>();
+            if(formation==null)return;
+            if(corridor.GetCorridorType()==Constants.CorridorTypes.Divide && corridor.divideAmount<=0)
+            { Debug.LogError("Rally gate has an invalid division operand.");return; }
             switch (corridor.GetCorridorType())
             {
                 case Constants.CorridorTypes.Increase:
@@ -40,6 +44,7 @@ namespace _Scripts.Controllers
                     break;
             }
            
+            formation.amount=Mathf.Max(0,formation.amount);
             HapticPatterns.PlayPreset(HapticPatterns.PresetType.SoftImpact);
 
             score += other.transform.parent.GetComponent<RadialFormation>().amount;

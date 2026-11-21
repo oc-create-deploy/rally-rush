@@ -68,3 +68,45 @@ for compilation/visual iteration, NOT product acceptance. Still required: inspec
 actual native humanoid/steering/camera and revise course/gates/clashes/finale/levels,
 upgrade old smoke harness to exact real choices/growth/loss/battle/win/next/save gates,
 then full fresh acceptance and incremented replacement distribution.
+
+## Deeper shipped-flow audit — 19:03 UTC (compile still running)
+
+- Level.unity overrides levels.Array.size to **1**. Stale data[1]/data[2]
+  overrides do not establish playable levels; NextLevel clamps to the last index.
+  Current replay therefore is not proof of designed escalating progression.
+- MiniBattleController's loop tests the player count twice, never the enemy
+  count; trigger lacks Cat/state filtering and count changes do not synchronize
+  GameFlowManager/UI. It has a particle effect, not proven visible opposing crowd.
+- Obstacle subtracts decreaseAmount yet removes exactly one spawned unit; it
+  leaves count UI stale. Multiple root contacts and formation respawn need an
+  honest, bounded per-unit loss contract with native before/after evidence.
+- Finale is currently a tap meter initially fixed at .5, followed by a cat-ball
+  roll whose force uses incoming crowd count. That alone does not establish the
+  requested original human-crowd clash/finale presentation.
+- Corridor arithmetic has no explicit consumed guard in the model, accepts zero
+  division, and increments a separate cumulative score. Verify paired exclusivity,
+  sane operands and exact once-only actual crowd changes, not just score movement.
+- Old native harness explicitly expects RUN AGAIN, not next-level advancement;
+  it never asserts each gate's exact crowd delta or visible unit consistency.
+
+These are source-audit findings, not observed native failures. Phase1 export
+44938365904 compiles b326846 only; all deeper fixes and acceptance remain pending.
+
+## Phase1 native diagnostic — 19:33 UTC (full acceptance still FAIL/pending)
+
+Run44939603351/export44938365904 sourceb326846 succeeded using actual native
+start/drag/retry/positive-route/boss taps/replay/cold launch; best205 preserved.
+Inspected all9 PNGs in rally-phase1-contact.png: original teal humanoid is now
+visible on the real perspective track and moves laterally/forward. No pink shader
+observed. However moving captures show only the initial one runner, not the grown
+crowd. Win observed84 in telemetry, but no growth/clash/finale image was captured.
+Gate labels crop at the screen edges/behind top HUD at distance; current course
+is sparse. Result says RUN AGAIN, level remains0. These are NOT product approval.
+
+Next source correction adds paired consumed guards before callbacks, raw gate
+before/after telemetry, exact visible count telemetry and centralized HUD/model
+count synchronization after gates/hazards/clashes. MiniBattle now filters real
+runner contacts, engages once and stops when either side reaches zero, including
+zero-enemy edge case. Recorder writes atomic timestamped snapshots. New source
+must compile and be tested; redesigned escalating course/clash/finale and full
+exact-arithmetic/native visual acceptance still required before release.
