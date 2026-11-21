@@ -201,6 +201,10 @@ result=json.loads((out/'result.json').read_text());result.update({'realPositiveG
 subprocess.run(['xcrun','simctl','terminate',udid,bundle],check=True)
 for snapshot_path in container.rglob('qa-state.json'):snapshot_path.unlink()
 subprocess.run(['xcrun','simctl','launch',udid,bundle],check=True)
+# Unity's persistent-data subpath can be recreated on cold launch. Do not
+# pin discovery to the pre-termination recorder location.
+container = pathlib.Path(subprocess.check_output(['xcrun','simctl','get_app_container',udid,bundle,'data'],text=True).strip())
+snapshot_path = None
 time.sleep(4)
 assert int(val('ScoreManager.bestScore'))==won_best,'Earned best score did not survive cold launch'
 assert val('GameFlowManager.state')=='Start','Cold launch did not restore a playable start'

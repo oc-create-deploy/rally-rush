@@ -140,3 +140,15 @@ Backgrounding pauses, return stays paused. Read-only playerPaused telemetry and
 native frozen-crowd capture now require actual pause, stable count/position across
 screenshot and actual resume; image explicitly labelled paused, not moving.
 Compile/native verification pending, full product redesign still pending.
+
+20:41 native44946132951: actual pause/resume and visible21-person crowd now
+verified in unobscured paused image, raw position/count stable across freshframes
+3926->4014. +20 1->21 and x4 21->84;76 consistent count samples. Native win205
+and replay passed. Aggregate FAIL at cold recorder discovery (snapshot missing),
+not proven lost score; final image shows playable start. Host now invalidates
+cached recorder path and re-resolves container on cold launch (prior noncached
+harness cold passed). Must prove, not assume. Runtime log also has DOTween safe
+mode missing/null target warnings on scene replay; fix lifecycle before final
+acceptance. Clash/finale captures absent; level remains0 and gate text still clips.
+Archive44946132951.zip CRC checked; all9PNG inspected rally-phase3-contact.png.
+No full product acceptance/release.
