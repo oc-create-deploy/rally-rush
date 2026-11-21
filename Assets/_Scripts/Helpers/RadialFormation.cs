@@ -13,9 +13,11 @@ public class RadialFormation : FormationBase {
     public float nthOffset = 0;
 
     public override IEnumerable<Vector3> EvaluatePoints() {
-        int amountPerRing = amount / rings;
+        int ringCount=Mathf.Max(1,rings);
+        int safeAmount=Mathf.Max(0,amount);
         float ringOffset = 0f;
-        for (int i = 0; i < rings; i++) {
+        for (int i = 0; i < ringCount; i++) {
+            int amountPerRing=safeAmount/ringCount+(i<safeAmount%ringCount ? 1 : 0);
             for (int j = 0; j < amountPerRing; j++) {
                 float angle = j * Mathf.PI * (2 * rotations) / amountPerRing + (i % 2 != 0 ? nthOffset : 0);
 

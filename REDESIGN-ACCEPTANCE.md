@@ -51,3 +51,20 @@ Next implementation: original animated humanoid crowd and legible course/gates,
 responsive normalized drag, designed escalating gate/hazard/clash/finish levels,
 read-only telemetry and fresh real native input/capture gates. No Rally CI or
 replacement deployment has been dispatched for this correction yet.
+
+## First source correction — 18:56 UTC (NOT accepted)
+
+Cat component now builds an original vest/head/headband/limb/shoe runner over the
+existing root collider/tag, hides the old primitive and animates opposing limbs
+only in active game/battle states. This changes the referenced shipped prefab's
+actual runtime rendering, not just an unused asset. Native visuals remain unproven.
+Drag now maps normalized screen delta directly to track displacement without the
+extra fixedDeltaTime multiplier; no movement persists after finger release.
+RadialFormation distributes remainders among rings so requested and visible unit
+counts agree even when crowd size is not divisible by ring count.
+
+Diff checks pass; no Unity compiler is available on this host. Simulator export is
+for compilation/visual iteration, NOT product acceptance. Still required: inspect
+actual native humanoid/steering/camera and revise course/gates/clashes/finale/levels,
+upgrade old smoke harness to exact real choices/growth/loss/battle/win/next/save gates,
+then full fresh acceptance and incremented replacement distribution.

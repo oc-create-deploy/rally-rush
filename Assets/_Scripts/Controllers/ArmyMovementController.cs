@@ -30,33 +30,26 @@ namespace _Scripts.Controllers
         
         private void ControlCharacter()
         {
-            if (Input.GetMouseButtonDown(0))
+            _moveFactorX=0;
+            if(Input.GetMouseButtonDown(0))
             {
-                _lastFrameFingerPositionX = Input.mousePosition.x;
-                _lastFrameFingerPosition = Input.mousePosition;
+                _lastFrameFingerPositionX=Input.mousePosition.x;
+                _lastFrameFingerPosition=Input.mousePosition;
             }
-            else if (Input.GetMouseButton(0))
+            else if(Input.GetMouseButton(0))
             {
-                _moveFactorX = Input.mousePosition.x - _lastFrameFingerPositionX;
-                _lastFrameFingerPositionX = Input.mousePosition.x;
-            }
-            else if (Input.GetMouseButtonUp(0))
-            {
-                _moveFactorX = 0f;
-                RotateAnimatedRig(0);
+                // Map a screen-width drag to the track width, independent of FPS.
+                _moveFactorX=(Input.mousePosition.x-_lastFrameFingerPositionX)/Mathf.Max(1,Screen.width);
+                _lastFrameFingerPositionX=Input.mousePosition.x;
             }
         }
-
         private void Move()
         {
-            float swerveAmount = Constants.SWERVE_SPEED * MoveFactorX  * Time.fixedDeltaTime / Screen.width;
-             // movementVector.x = Mathf.SmoothDamp(0f,swerveAmount, ref velocity, 1);
-             movementVector.x =  Mathf.Lerp(0F,swerveAmount,  Constants.LERP_COEF);
-            transform.Translate( (transform.forward  * Time.deltaTime * Constants.SPEED_COEFFICIENT ) + movementVector);
-
-            // RotateAnimatedRig(MoveFactorX * 10F);
-            var directionAmount = Mathf.Lerp(CalculateDirection().x , 0F, Time.deltaTime);
-             RotateAnimatedRig( directionAmount );
+            var position=transform.position;
+            position.x=Mathf.Clamp(position.x+_moveFactorX*Constants.CLAMP_MODIFIER*4,-Constants.CLAMP_MODIFIER,Constants.CLAMP_MODIFIER);
+            position+=transform.forward*Time.deltaTime*Constants.SPEED_COEFFICIENT;
+            transform.position=position;
+            RotateAnimatedRig(_moveFactorX*500);
         }
 
         private Vector3 CalculateDirection()
