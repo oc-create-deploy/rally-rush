@@ -27,6 +27,7 @@ namespace _Scripts.Controllers
             public float endZ;
             public float totalZ;
             public int VisibleUnitCount => _spawnedUnits.Count;
+            public float FormationHalfWidth => _points.Count>0 ? _points.Max(p=>Mathf.Abs(p.x)) : .5f;
             public Material RunnerMaterial => _catUnit.GetComponent<Renderer>().sharedMaterial;
 
 

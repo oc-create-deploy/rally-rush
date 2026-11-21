@@ -213,3 +213,19 @@ readable world reward banner. Real pause freezes relay. Recorder exposes raw
 relay count/multiplier/reward/stage; host checks arithmetic and captures real
 paused relay. Compilation/native visuals/outcomes unproven. Full crowd bounds,
 course dressing, moving capture, background and acceptance remain pending.
+
+23:13 native44959314107 SUCCESS, all12PNG inspected rally-phase8-contact.png.
+Red rivals now visibly humanoid; actual hero81/rivals3 paused stable, then
+surviving78 runs relay x4=312; total417, realnextlevel/coldlevel/best persistence.
+Actual paused relay banner/steps/army readable; no old ball/boss taps(0).
+HUD81 matches actual crowd. Still right-edge clipped crowd and first moving
+images clip hero/near gates, so NOT full visual/product acceptance. Artifact
+14729088201 CRC checked in memory; original images/JSON/logs local/video remote.
+
+New source constrains army center by actual formation half-width, with minimum
+steering span for choices, exposes actual min/max to native route planner;
+gate-side selection now uses player army-center x, not arbitrary first follower
+exit across a paired gate. Camera widens/backtracks smoothly for full crowd.
+New native proof required; no claim bounds fixed before inspection. Remaining:
+course dressing, both math choices/division, complete stage playthroughs, hazards
+and actual background/resume, moving visuals/full acceptance before release.

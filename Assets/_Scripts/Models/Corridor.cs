@@ -67,6 +67,10 @@ namespace _Scripts.Models
             if (consumed || !other.CompareTag("Cat") || GameFlowManager.Instance.state != GameState.Game) return;
             var formation=other.GetComponentInParent<RadialFormation>();
             if(formation==null)return;
+            // The player's steering selects a side, not an outer follower's
+            // earlier exit when a wide crowd straddles both alternatives.
+            var bounds=GetComponent<Collider>().bounds;
+            if(formation.transform.position.x<bounds.min.x || formation.transform.position.x>bounds.max.x)return;
             // Consume both choices BEFORE callbacks can process another crowd unit.
             consumed=true;
             if(neighbourCorridorCollider!=null)

@@ -8,6 +8,7 @@ namespace _Scripts.Controllers
     public class ArmyMovementController : MonoBehaviour
     {
         public bool isGamePaused;
+        public float minX=-2.2f,maxX=2.2f;
         private float _lastFrameFingerPositionX;
         private Vector3 _lastFrameFingerPosition;
         private float _moveFactorX;
@@ -19,10 +20,13 @@ namespace _Scripts.Controllers
         {
             if (isGamePaused != false) return;
 
+            var army=GetComponent<ArmyController>();
+            float bound=Mathf.Max(.35f,Constants.CLAMP_MODIFIER-(army!=null ? army.FormationHalfWidth : .5f));
+            minX=.45f-bound;maxX=.45f+bound;
             ControlCharacter();
             //CLAMP X POS
             var pos = transform.position;
-            pos.x =  Mathf.Clamp(transform.position.x, -Constants.CLAMP_MODIFIER, Constants.CLAMP_MODIFIER);
+            pos.x =  Mathf.Clamp(transform.position.x, minX, maxX);
             transform.position = pos;
             
             Move();
@@ -46,7 +50,7 @@ namespace _Scripts.Controllers
         private void Move()
         {
             var position=transform.position;
-            position.x=Mathf.Clamp(position.x+_moveFactorX*Constants.CLAMP_MODIFIER*4,-Constants.CLAMP_MODIFIER,Constants.CLAMP_MODIFIER);
+            position.x=Mathf.Clamp(position.x+_moveFactorX*Constants.CLAMP_MODIFIER*4,minX,maxX);
             position+=transform.forward*Time.deltaTime*Constants.SPEED_COEFFICIENT;
             transform.position=position;
             RotateAnimatedRig(_moveFactorX*500);

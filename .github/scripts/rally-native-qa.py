@@ -182,7 +182,7 @@ while time.time()<deadline:
             def effect(gate):
                 label=gate['text'];n=int(label[1:])
                 return amount+n if label[0]=='+' else amount-n if label[0]=='-' else amount*n if label[0]=='x' else amount//max(n,1)
-            gate=max(choices,key=effect);target=max(-2.2,min(2.2,gate['shape'][0]['x']-.28));dx=target-x
+            gate=max(choices,key=effect);target=max(float(values.get('ArmyMovementController.minX',-2.2)),min(float(values.get('ArmyMovementController.maxX',2.2)),gate['shape'][0]['x']-.28));dx=target-x
             if abs(dx)>.35 and front-z<28:
                 start_x=80 if dx<0 else 20
                 end_x=max(2,min(98,start_x+dx/7.5*100))

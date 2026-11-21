@@ -22,7 +22,7 @@ public class CameraController : MonoBehaviour
             temp.x = .45f; // Keep BOTH choice lanes in view while steering.
              // temp.x = 0;
              transform.position = Vector3.Lerp(transform.position, temp+ new Vector3(offset.x, 
-                 offset.y + formationArmy.amount / 25, offset.z - formationArmy.amount / 25), 5*Time.deltaTime);
+                 offset.y + 2 + Mathf.Min(formationArmy.amount / 25f,3), offset.z - 3 - Mathf.Min(formationArmy.amount / 25f,3)), 5*Time.deltaTime);
         }
     }
 }
