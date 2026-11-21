@@ -229,3 +229,20 @@ exit across a paired gate. Camera widens/backtracks smoothly for full crowd.
 New native proof required; no claim bounds fixed before inspection. Remaining:
 course dressing, both math choices/division, complete stage playthroughs, hazards
 and actual background/resume, moving visuals/full acceptance before release.
+
+23:48 diagnostic44961814147 SUCCESS, all12PNG inspected phase9 contact. Crowd
+now fits in growth/relay images, near gate choices legible at paused growth;
+initial runner smaller, far gates hidden under HUD; moving-labelled images still
+show RUNENDED. Clash-labelled image actually enemy0/hero78 (pause too late), so
+NOT clash-capture acceptance despite diagnostic boolean. Relay/reward417 and
+next/coldlevel pass. Artifact14730457903 CRC checked in memory; original PNG/JSON/
+logs retained locally, large video retained in GitHub due tight disk.
+
+Clash attrition now .6s per pair (3.6..10.8s authored encounter) for readable
+player experience; native frozen capture requires actual remaining enemy>0
+and stable before/after count, relay requires actual CrowRelay stage. Expanded
+native path earns levels1/2/3, verifies every gate/clash/relay, actual division
+21/3=7 route, earns level4 and cold-restores it. Then real paused Safari warmup
+and genuine running-background/fresh paused return/stable position/manual resume
+checks. No model writes. New compile/native proof required; still not full
+product approval until rendered/moving evidence/course/hazards review passes.

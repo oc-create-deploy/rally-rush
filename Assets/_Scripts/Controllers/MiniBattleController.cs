@@ -36,7 +36,7 @@ namespace _Scripts.Controllers
         
         private void Start()
         {
-            _getWait = new WaitForSeconds(0.2F);
+            _getWait = new WaitForSeconds(0.6F);
             var army=FindObjectOfType<ArmyController>();
             enemyKit=army!=null && army.RunnerMaterial!=null ? new Material(army.RunnerMaterial) : new Material(Shader.Find("Standard"));
             enemyKit.color=new Color(.93f,.16f,.22f);

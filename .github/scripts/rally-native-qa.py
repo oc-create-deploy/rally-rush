@@ -49,6 +49,11 @@ def frozen_capture(label):
     before=state();capture(label);after=state()
     def values(s):return {v['key']:v['value'] for v in s['values']}
     b,a=values(before),values(after)
+    if 'clash' in label:
+        assert int(b.get('MiniBattleController.corridorEnemyCount',0))>0,'Clash ended before actual pause'
+        assert a.get('MiniBattleController.corridorEnemyCount')==b['MiniBattleController.corridorEnemyCount'],'Paused rival count drift'
+    if 'relay' in label:
+        assert b.get('BattleController.finaleStage')=='CrowdRelay' and a.get('BattleController.finaleStage')=='CrowdRelay','Relay ended before actual pause'
     assert a['GameFlowManager.playerPaused']=='True' and a['GameFlowManager.state']=='Pause'
     for key in ['RadialFormation.amount','ArmyMovementController.position']:
         assert a[key]==b[key],('Pause did not freeze gameplay',key,b[key],a[key])
@@ -220,3 +225,83 @@ assert int(val('LevelController.currentLevel'))==won_level+1,'Earned level did n
 capture('08-cold-restored')
 result.update({'earnedBestScore':won_best,'earnedBestScoreColdLaunchVerified':True,'winAndProgressPersistence':True})
 (out/'result.json').write_text(json.dumps(result,indent=2))
+
+# Real earned stage progression, never PlayerPrefs/model mutation.
+stage_results=[]
+for expected_level in (1,2,3):
+    assert int(val('LevelController.currentLevel'))==expected_level
+    tap('StartButton')
+    gate_history={};count_mismatch_since=None
+    stage_clash=False;stage_relay=False;deadline=time.time()+320
+    while time.time()<deadline:
+        snapshot=state();values={v['key']:v['value'] for v in snapshot['values']}
+        audit_crowd(snapshot,values)
+        buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]
+        if any(i.get('text')=='NEXT LEVEL' for i in buttons):break
+        assert not any(i['name']=='Restart' for i in buttons),('Earned stage route lost',expected_level,values)
+        if values.get('GameFlowManager.state')=='MiniBattle' and not stage_clash:
+            frozen_capture(f'level-{expected_level}-clash-paused');stage_clash=True;continue
+        if values.get('BattleController.finaleStage')=='CrowdRelay' and not stage_relay:
+            assert int(values['BattleController.finaleReward'])==int(values['BattleController.finaleCrowd'])*int(values['BattleController.finaleMultiplier'])
+            frozen_capture(f'level-{expected_level}-relay-paused');stage_relay=True;continue
+        if values.get('GameFlowManager.state')=='Game':
+            x,_,z=xyz(values['ArmyMovementController.position'])
+            gates=[i for i in snapshot['items'] if i['kind']=='gate' and i['interactable'] and i['shape'] and i['shape'][0]['y']>z+2]
+            if gates:
+                front=min(i['shape'][0]['y'] for i in gates)
+                choices=[i for i in gates if abs(i['shape'][0]['y']-front)<2]
+                amount=int(values['RadialFormation.amount'])
+                def outcome(g):
+                    op=g['text'];n=int(op[1:])
+                    return amount+n if op[0]=='+' else amount-n if op[0]=='-' else amount*n if op[0]=='x' else amount//n
+                division=[g for g in choices if g['text']=='/3']
+                gate=division[0] if expected_level==3 and division else max(choices,key=outcome)
+                target=max(float(values['ArmyMovementController.minX']),min(float(values['ArmyMovementController.maxX']),gate['shape'][0]['x']-.28))
+                dx=target-x
+                if abs(dx)>.25 and front-z<28:
+                    start_x=80 if dx<0 else 20
+                    bridge.swipe(f'{start_x}%, 70%',f'{max(2,min(98,start_x+dx/8.8*100))}%, 70%')
+        time.sleep(.15)
+    else:raise AssertionError(('Earned stage timed out',expected_level))
+    assert len(gate_history)>=2 and stage_clash and stage_relay,('Missing real stage gates/clash/relay',expected_level,gate_history,stage_clash,stage_relay)
+    if expected_level==3:assert any(p['operation']=='/3' and p['before']==21 and p['after']==7 for p in gate_history.values()),'Actual division route missing'
+    capture(f'level-{expected_level}-result')
+    stage_results.append({'level':expected_level,'gates':dict(gate_history),'clash':stage_clash,'relay':stage_relay})
+    tap('NEXT LEVEL');time.sleep(3)
+    assert int(val('LevelController.currentLevel'))==expected_level+1
+subprocess.run(['xcrun','simctl','terminate',udid,bundle],check=True)
+snapshot_path=None
+subprocess.run(['xcrun','simctl','launch',udid,bundle],check=True)
+container=pathlib.Path(subprocess.check_output(['xcrun','simctl','get_app_container',udid,bundle,'data'],text=True).strip())
+assert int(val('LevelController.currentLevel'))==4,'Four earned levels did not survive cold launch'
+capture('12-earned-level4-cold')
+(out/'earned-stages.json').write_text(json.dumps({'stages':stage_results,'coldEarnedLevel':4,'fullProductAcceptance':False},indent=2))
+# Prewarm Safari while actually paused; this setup is not background acceptance.
+tap('StartButton');time.sleep(.5);tap('PAUSE')
+assert val('GameFlowManager.playerPaused')=='True'
+warm_frame=state()['frame']
+subprocess.run(['xcrun','simctl','launch',udid,'com.apple.mobilesafari'],check=True)
+subprocess.run(['xcrun','simctl','launch',udid,bundle,'--playabilityQA'],check=True)
+deadline=time.time()+20
+while state()['frame']<=warm_frame and time.time()<deadline:time.sleep(.1)
+assert val('GameFlowManager.playerPaused')=='True'
+tap('RESUME')
+assert val('GameFlowManager.playerPaused')=='False' and val('GameFlowManager.state')=='Game'
+before=state();(out/'background-before.json').write_text(json.dumps(before,indent=2))
+subprocess.run(['xcrun','simctl','launch',udid,'com.apple.mobilesafari'],check=True)
+subprocess.run(['xcrun','simctl','io',udid,'screenshot',str(out/'13-system-background.png')],check=True)
+subprocess.run(['xcrun','simctl','launch',udid,bundle,'--playabilityQA'],check=True)
+deadline=time.time()+20
+while state()['frame']<=before['frame'] and time.time()<deadline:time.sleep(.1)
+a=state();av={v['key']:v['value'] for v in a['values']}
+assert av['GameFlowManager.playerPaused']=='True' and av['GameFlowManager.state']=='Pause','Running background did not pause'
+time.sleep(1)
+b=state();bv={v['key']:v['value'] for v in b['values']}
+assert b['frame']>a['frame'] and bv['ArmyMovementController.position']==av['ArmyMovementController.position'],'Foreground resumed itself'
+capture('14-background-return-paused')
+tap('RESUME');assert val('GameFlowManager.playerPaused')=='False'
+deadline=time.time()+10
+while val('ArmyMovementController.position')==bv['ArmyMovementController.position'] and time.time()<deadline:time.sleep(.1)
+assert xyz(val('ArmyMovementController.position'))[2]>xyz(bv['ArmyMovementController.position'])[2],'Actual background resume did not move'
+tap('PAUSE')
+(out/'background-result.json').write_text(json.dumps({'actualSystemAppBackground':True,'freshReturnPaused':True,'stableForeground':True,'nativeResumeMoved':True,'fullProductAcceptance':False},indent=2))
