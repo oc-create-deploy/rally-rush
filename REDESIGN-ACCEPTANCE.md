@@ -122,3 +122,21 @@ and finale-roll captures are attempted and explicitly reported missing if not
 observed; this diagnostic does not claim full redesign acceptance or next levels.
 Reuses Metro's proven no-input driver keepalive and longer initial installation
 budget. Python syntax/diff checks pass; actual new native evidence still pending.
+
+### Phase2 diagnostic failed — 20:05 UTC
+Run44942950535 sourcebca1f9e/hostfbee5bb: raw +20 1->21 and x4 21->84,
+actual spawned/model counts84 agree. Native positive run then lost at boss.
+The supposed moving-grown image is **RUN ENDED**, not crowd evidence: saved
+Game/21 JSON at19:59:29.776 precedes screenshot invocation20:00:48 by~79s.
+Exact blocking/stall cause is unproven. Both images inspected in
+rally-phase2-failure.png. No acceptance and no blind retry. Add real native
+pause/frozen readable capture with fresh pre/post image state and retain actual
+moving video; complete product course/clash/finale/progression/pause corrections.
+
+20:12 source iteration: dedicated unobscured PAUSE/RESUME button uses real player
+input and freezes Time.timeScale, including battle timers/clash coroutines; keeps
+the original Game/MiniBattle/Battle state on resume without restarting the battle.
+Backgrounding pauses, return stays paused. Read-only playerPaused telemetry and
+native frozen-crowd capture now require actual pause, stable count/position across
+screenshot and actual resume; image explicitly labelled paused, not moving.
+Compile/native verification pending, full product redesign still pending.

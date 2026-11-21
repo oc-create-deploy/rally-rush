@@ -73,7 +73,7 @@ public sealed class NativeQaRecorder : MonoBehaviour
             var state=new Snapshot{scene=SceneManager.GetActiveScene().name,frame=Time.frameCount,width=Screen.width,height=Screen.height,safeX=safe.x,safeY=safe.y,safeW=safe.width,safeH=safe.height,errors=new List<string>(errors)};
             state.utcSeconds=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()/1000.0;
             string[] fields={"Score","Coins","IsPlaying","Remaining","TrayCount","Won","Lost","coins","workers","factories","prestige","best","lane","distance","state","points","recordPoints","playerCount","currentLevel","carryingItem","isGamePaused","amount","startZ","endZ","totalZ","canStart","canEject","bestScore","lastScore"};
-            fields=fields.Concat(new[]{"VisibleUnitCount","corridorEnemyCount"}).ToArray();
+            fields=fields.Concat(new[]{"VisibleUnitCount","corridorEnemyCount","playerPaused"}).ToArray();
             string[] models={"MetroDashGame","EmpireIdleGame","MatchscapeGame","GameManager","GameController","GameFlowManager","LevelController","PlayerManager","ArmyMovementController","ArmyController","RadialFormation","BattleController","MiniBattleController","ScoreManager"};
             foreach(MonoBehaviour c in FindObjectsOfType<MonoBehaviour>())
             {

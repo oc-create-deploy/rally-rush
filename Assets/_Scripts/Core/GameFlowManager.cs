@@ -12,13 +12,32 @@ namespace _Scripts.Core
         [SerializeField] private GameObject player;
         [HideInInspector] public int playerCount;
         public BattleController battleController;
-        
+
         public GameState state;
-        private LevelController levelController; 
+        private LevelController levelController;
+        public bool playerPaused;
+        private GameState resumeState;
+        public void TogglePlayerPause()
+        {
+            if(playerPaused)
+            {
+                playerPaused=false;Time.timeScale=1;state=resumeState;
+                player.GetComponent<ArmyMovementController>().isGamePaused=state!=GameState.Game;
+                return;
+            }
+            if(state!=GameState.Game && state!=GameState.MiniBattle && state!=GameState.Battle)return;
+            resumeState=state;playerPaused=true;state=GameState.Pause;
+            PauseGameFlow();Time.timeScale=0;
+        }
+        private void OnApplicationPause(bool paused)
+        { if(paused && !playerPaused)TogglePlayerPause(); }
+        private void OnDestroy(){Time.timeScale=1;}
+
         public static event Action<GameState> onGameStateChange;
-        
+
         private void Start()
         {
+            Time.timeScale=1;
             levelController = this.GetComponent<LevelController>();
             _radialFormation = player.GetComponent<RadialFormation>();
             playerCount = _radialFormation.amount;
@@ -50,21 +69,21 @@ namespace _Scripts.Core
         {
             levelController.NextLevel(); // Owns the single scene transition.
         }
-        
+
         public void UpdateGameState(GameState newState)
         {
             state = newState;
 
             switch (newState)
             {
-                case GameState.Start: 
+                case GameState.Start:
                     GameStart();
                     break;
                 case GameState.Tutorial:
                     break;
                 case GameState.Game:
                     ContinueGameFlow();
-                    break; 
+                    break;
                 case GameState.Battle:
                     print("// Battle phase logic here ");
                     BattlePhase();
@@ -85,7 +104,7 @@ namespace _Scripts.Core
                 default:
                     throw new ArgumentOutOfRangeException(nameof(newState), newState, null);
             }
-            
+
             // Notify game state changed;
             onGameStateChange?.Invoke(newState);
         }
@@ -112,11 +131,11 @@ namespace _Scripts.Core
         {
             PauseGameFlow();
         }
-      
+
         public int GetPlayerCount(){
             return playerCount;
         }
-        
+
         public void SetPlayerCount(int _score)
         {
             playerCount = _score;

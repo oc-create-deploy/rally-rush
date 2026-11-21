@@ -31,8 +31,24 @@ namespace _Scripts.Core
         public GameObject levelCountUIObject;
         public GameObject progressBarUIObject;
         
+        private Button livePause;
+        private void Update()
+        {
+            if(livePause==null || GameFlowManager.Instance==null)return;
+            var flow=GameFlowManager.Instance;
+            livePause.gameObject.SetActive(flow.playerPaused || flow.state==GameState.Game || flow.state==GameState.MiniBattle || flow.state==GameState.Battle);
+            var label=livePause.GetComponentInChildren<TextMeshProUGUI>();
+            label.text=flow.playerPaused ? "RESUME" : "PAUSE";
+        }
         private void Start()
         {
+            var pauseObject=new GameObject("LivePause",typeof(RectTransform),typeof(Image),typeof(Button));
+            pauseObject.transform.SetParent(startButton.GetComponentInParent<Canvas>().transform,false);
+            var pauseRect=pauseObject.GetComponent<RectTransform>();
+            pauseRect.anchorMin=pauseRect.anchorMax=new Vector2(.5f,.10f);
+            pauseRect.anchoredPosition=Vector2.zero;pauseRect.sizeDelta=new Vector2(260,95);
+            livePause=pauseObject.GetComponent<Button>();LabelButton(livePause,"PAUSE");
+            livePause.onClick.AddListener(()=>GameFlowManager.Instance.TogglePlayerPause());
             GameFlowManager.onGameStateChange += GameFlowManagerOnGameStateChange;
             levelText.text = "LEVEL " + (FindObjectOfType<LevelController>().currentLevel + 1);
             SetPlayerCountText(GameFlowManager.Instance.GetPlayerCount());

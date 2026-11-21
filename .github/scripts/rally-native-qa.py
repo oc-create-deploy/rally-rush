@@ -35,6 +35,24 @@ def capture(label):
     (out/(label+'.json')).write_text(json.dumps(state(),indent=2))
     subprocess.run(['xcrun','simctl','io',udid,'screenshot',str(out/(label+'.png'))],check=True)
 
+def frozen_capture(label):
+    # Real player pause, not a QA model write. Keep the course unobscured.
+    tap('PAUSE')
+    deadline=time.time()+5
+    while val('GameFlowManager.playerPaused')!='True' and time.time()<deadline:time.sleep(.1)
+    assert val('GameFlowManager.playerPaused')=='True','Actual player pause missing'
+    before=state();capture(label);after=state()
+    def values(s):return {v['key']:v['value'] for v in s['values']}
+    b,a=values(before),values(after)
+    assert a['GameFlowManager.playerPaused']=='True' and a['GameFlowManager.state']=='Pause'
+    for key in ['RadialFormation.amount','ArmyMovementController.position']:
+        assert a[key]==b[key],('Pause did not freeze gameplay',key,b[key],a[key])
+    (out/(label+'-after.json')).write_text(json.dumps(after,indent=2))
+    tap('RESUME')
+    deadline=time.time()+5
+    while val('GameFlowManager.playerPaused')=='True' and time.time()<deadline:time.sleep(.1)
+    assert val('GameFlowManager.playerPaused')=='False','Actual resume missing'
+
 def point(item):
     assert 0<item['x']<1 and 0<item['y']<1,item
     return f"{round(item['x']*100)}%, {round(item['y']*100)}%"
@@ -133,7 +151,7 @@ while time.time()<deadline:
     snapshot=state();values={v['key']:v['value'] for v in snapshot['values']}
     audit_crowd(snapshot,values)
     if not captured_growth and count_mismatch_since is None and int(values['RadialFormation.amount'])>1 and values.get('GameFlowManager.state')=='Game':
-        capture('09-grown-crowd-moving');captured_growth=True;continue
+        frozen_capture('09-grown-crowd-paused');captured_growth=True;continue
     if not captured_clash and values.get('GameFlowManager.state')=='MiniBattle':
         capture('10-clash');captured_clash=True;continue
     if not captured_finale and values.get('BattleController.canEject')=='True':
