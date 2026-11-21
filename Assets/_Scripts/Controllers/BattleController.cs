@@ -1,10 +1,12 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using _Scripts.Core;
 using DG.Tweening;
 using Lofelt.NiceVibrations;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace _Scripts.Controllers
 {
@@ -43,11 +45,65 @@ namespace _Scripts.Controllers
             bossComponent = FindObjectOfType<Boss>();
         }
 
+        private readonly List<Material> relayMaterials=new List<Material>();
+        private void OnDestroy(){foreach(var material in relayMaterials)if(material!=null)Destroy(material);}
+        public int finaleCrowd,finaleMultiplier,finaleReward;
+        public string finaleStage="NotStarted";
         public void Battle()
         {
-            camController.lockCamera = true; // Follow must not fight the battle camera tween.
-            cameraTransform.DOMove(new Vector3(9F, 9F, 100F), 1).OnComplete(OpenBattleScene);
-            cameraTransform.DORotate(new Vector3(25, -50, 0), 0.5F);
+            if(finaleStage!="NotStarted")return;
+            StartCoroutine(CrowdRelayFinale());
+        }
+        private IEnumerator CrowdRelayFinale()
+        {
+            var army=FindObjectOfType<ArmyController>();
+            var formation=army.GetComponent<RadialFormation>();
+            finaleCrowd=formation.amount;
+            finaleMultiplier=Mathf.Clamp(1+finaleCrowd/20,1,5);
+            finaleReward=finaleCrowd*finaleMultiplier;
+            finaleStage="CrowdRelay";
+            canStart=false;canEject=false;
+            if(battleUI!=null)battleUI.SetActive(false);
+            var boss=FindObjectOfType<Boss>();
+            if(boss!=null)
+            {
+                foreach(var r in boss.GetComponentsInChildren<Renderer>())r.enabled=false;
+                foreach(var c in boss.GetComponentsInChildren<Collider>())c.enabled=false;
+            }
+            camController.lockCamera=false;camController.target=army.transform;
+            mainCamera.transform.DORotate(new Vector3(40,0,0),.5f);
+            float startZ=army.transform.position.z;
+            var basis=army.RunnerMaterial;
+            for(int i=1;i<=5;i++)
+            {
+                var step=GameObject.CreatePrimitive(PrimitiveType.Cube);step.name="Relay reward step x"+i;
+                step.transform.position=new Vector3(.45f,.5f+i*.10f,startZ+3+i*1.5f);
+                step.transform.localScale=new Vector3(6,.2f+i*.2f,1.4f);
+                step.GetComponent<Collider>().enabled=false;
+                var material=basis!=null ? new Material(basis) : new Material(Shader.Find("Standard"));
+                relayMaterials.Add(material);
+                material.color=i<=finaleMultiplier ? new Color(.12f,.75f,.58f) : new Color(.25f,.33f,.45f);
+                step.GetComponent<Renderer>().sharedMaterial=material;
+                var label=new GameObject("Relay multiplier").AddComponent<TextMeshPro>();
+                label.transform.SetParent(step.transform,false);
+                label.transform.position=step.transform.position+Vector3.up*(.5f+i*.1f);
+                label.transform.rotation=mainCamera.transform.rotation;
+                label.transform.localScale=new Vector3(1/6f,1/(.2f+i*.2f),1/1.4f);
+                label.font=Resources.Load<TMP_FontAsset>("RallyFont");label.fontSize=5;label.alignment=TextAlignmentOptions.Center;
+                label.text="x"+i;label.color=Color.white;
+            }
+            var banner=new GameObject("Crowd relay reward").AddComponent<TextMeshPro>();
+            banner.font=Resources.Load<TMP_FontAsset>("RallyFont");banner.fontSize=4;banner.alignment=TextAlignmentOptions.Center;
+            banner.rectTransform.sizeDelta=new Vector2(7,2);
+            banner.transform.position=new Vector3(.45f,4.5f,startZ+7);
+            banner.transform.rotation=mainCamera.transform.rotation;
+            banner.text=finaleCrowd+" RUNNERS x"+finaleMultiplier+" = "+finaleReward;
+            army.transform.DOMove(new Vector3(.45f,army.transform.position.y,startZ+3+finaleMultiplier*1.5f),4);
+            yield return new WaitForSeconds(5);
+            finaleStage="Complete";
+            AudioManager.Instance.StopFightSound();
+            ScoreManager.Instance.EndCrowdRelayScore(finaleReward);
+            GameFlowManager.Instance.UpdateGameState(GameState.Win);
         }
 
         private void Update()

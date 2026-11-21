@@ -195,3 +195,21 @@ freezes it; optional particle handling supports this encounter without imported
 cat effects. New native capture explicitly pauses the clash and labels it so.
 Compile/native visuals/exact clash outcomes UNPROVEN. Finale remains old tap/roll
 and still needs product correction, plus course dressing/moving capture/background.
+
+22:43 native44956318336 SUCCESS, but NOT visual acceptance. Raw clash paused80
+hero/2enemy stable before/after, result205 and next/coldlevel pass. All12PNG
+inspected rally-phase7-contact.png: rivals are not readable red humans (ghostlike
+white fragments); HUD105 is cumulative gate score, NOT actual80 crowd; right
+crowd still clips. Finale-labelled image is already result, not roll proof.
+Artifact14727874183 CRC checked in memory, original PNG/JSON/logs locally retained,
+video remote. Do not mistake diagnostic booleans for visual proof.
+
+Next source: bind rival and finale materials to actual runner prefab material
+(not arbitrary scene MeshRenderer which may use text-atlas shader); visible top
+HUD now shows actual crowd. Replace old unrelated boss/tap/ball finish with a
+crowd relay: actual surviving army moves to original reward steps, multiplier
+1..5 derives from surviving count, earned reward=count*multiplier saved in score,
+readable world reward banner. Real pause freezes relay. Recorder exposes raw
+relay count/multiplier/reward/stage; host checks arithmetic and captures real
+paused relay. Compilation/native visuals/outcomes unproven. Full crowd bounds,
+course dressing, moving capture, background and acceptance remain pending.

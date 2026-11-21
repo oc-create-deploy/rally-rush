@@ -27,6 +27,14 @@ public class ScoreManager : Singleton<ScoreManager>
         return Mathf.FloorToInt(Mathf.Clamp((bossTransformZ - point1Location.position.z) / Mathf.Max(pointPerLocation, .001f), 0, Constants.MAX_SCORE));
     }
 
+    public void EndCrowdRelayScore(int earnedReward)
+    {
+        lastScore=CorridorController.Instance.score+earnedReward;
+        bestScore=Mathf.Max(bestScore,lastScore);
+        PlayerPrefs.SetInt("rallyBestScore",bestScore);PlayerPrefs.Save();
+        endGameScoreText.text=lastScore+" / BEST "+bestScore+"\nCROWD RELAY +"+earnedReward;
+    }
+
     public void EndGamePopupScore(GameObject boss)
     {
         lastScore = Mathf.RoundToInt(CorridorController.Instance.score + CalculateLevelEndBonus(boss));

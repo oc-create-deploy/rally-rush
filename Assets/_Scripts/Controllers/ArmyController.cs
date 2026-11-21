@@ -27,6 +27,7 @@ namespace _Scripts.Controllers
             public float endZ;
             public float totalZ;
             public int VisibleUnitCount => _spawnedUnits.Count;
+            public Material RunnerMaterial => _catUnit.GetComponent<Renderer>().sharedMaterial;
 
 
             private void Start()
@@ -103,6 +104,7 @@ namespace _Scripts.Controllers
                      radial.amount=Mathf.Max(0,radial.amount);
                      GameFlowManager.Instance.SetPlayerCount(radial.amount);
                      UIManager.Instance.SetPlayerCountText(radial.amount);
+                     ScoreManager.Instance.upperScoreText.text=radial.amount.ToString();
                  }
                  ProgressBar();
             }

@@ -159,8 +159,9 @@ while time.time()<deadline:
         frozen_capture('09-grown-crowd-paused');captured_growth=True;continue
     if not captured_clash and values.get('GameFlowManager.state')=='MiniBattle':
         frozen_capture('10-clash-paused');captured_clash=True;continue
-    if not captured_finale and values.get('BattleController.canEject')=='True':
-        capture('11-finale-roll');captured_finale=True;continue
+    if not captured_finale and values.get('BattleController.finaleStage')=='CrowdRelay':
+        assert int(values['BattleController.finaleReward'])==int(values['BattleController.finaleCrowd'])*int(values['BattleController.finaleMultiplier'])
+        frozen_capture('11-crowd-relay-paused');captured_finale=True;continue
     buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]
     if any(i.get('text')=='NEXT LEVEL' for i in buttons):
         time.sleep(.6) # Let the actual win popup animation finish before capture/input.

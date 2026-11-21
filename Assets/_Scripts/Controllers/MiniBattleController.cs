@@ -37,8 +37,8 @@ namespace _Scripts.Controllers
         private void Start()
         {
             _getWait = new WaitForSeconds(0.2F);
-            var basis=FindObjectOfType<MeshRenderer>();
-            enemyKit=basis!=null && basis.sharedMaterial!=null ? new Material(basis.sharedMaterial) : new Material(Shader.Find("Standard"));
+            var army=FindObjectOfType<ArmyController>();
+            enemyKit=army!=null && army.RunnerMaterial!=null ? new Material(army.RunnerMaterial) : new Material(Shader.Find("Standard"));
             enemyKit.color=new Color(.93f,.16f,.22f);
             for(int i=0;i<corridorEnemyCount;i++)
             {
