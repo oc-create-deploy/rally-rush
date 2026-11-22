@@ -307,3 +307,39 @@ capture. Three stage accent colors/roadside course markers clarify designed
 route. Compilation/native visuals and loss counts UNPROVEN. Fresh full native
 including hazard/stages/background plus rendered/moving inspection required
 before merge/device/release; no TestFlight replacement claim yet.
+
+## Simulator product acceptance — Nov22 02:38 UTC
+
+ACCEPTED for the requested original 3D crowd/multiplier-runner replacement,
+based on native run44975315004 SUCCESS, export44974409981/source597488b.
+This is simulator evidence-based acceptance, not Alex's physical-device review.
+
+- Actual native start/drag/forward movement, negative-choice loss/retry and
+  positive route, +/x/div exact once-only raw arithmetic and visible count/HUD.
+- Original moving humanoid crowd, visible red rivals and actual paired attrition.
+- Physical orange breakaway post contact84->83 exactly once; readable -1 RUNNER,
+  actual camera motion and count change inspected in consecutive native video
+  frames (moving-hazard0/1/2), not inferred from a paused marketing image.
+- Actual surviving77 relay x4=308; total413; reduced crowds earn appropriately
+  smaller original reward steps. Four earned levels include every authored
+  stage, actual division21/3=7, final1-runner relay and real win/next.
+- Genuine post-launch coldlevel4/best persistence; actual Safari background,
+  fresh return paused, stable foreground, actual manual resume.
+- All26 native screenshots inspected via rally-final-contact.png, plus motion
+  originals. 02/03 RUN ENDED images are excluded as moving proof. Growth, hazard,
+  rivals, relay, results, changed level and system-app screenshots are readable;
+  no pink/error shader, crowd clipping or control overlap observed in accepted
+  gameplay/capture sequence. Distant horizon gate text is not relied on; actual
+  approaching paired gates are legible. No snapshot runtime errors or logged
+  missing-tween-target warnings found.
+
+Evidence: research/game-fixes-2026-11-19/rally-3d-44975315004, final-contact/motion
+images, raw transitions and video-selection.json. Full GitHub artifact14736350581
+CRC-verified in memory; original video retained remotely to preserve local disk
+headroom, selected original frames/PNG/JSON/logs retained locally. No simulator
+export payload or physical-device use.
+
+Release next: merge/push accepted source, device export (simulator=false), fresh
+unused build>=4, sign/upload, ASC VALID, then independently verify exact intended
+internal tester/group/build and eligible beta state. Simulator acceptance alone
+is NOT replacement TestFlight delivery.
