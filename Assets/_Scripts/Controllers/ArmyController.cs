@@ -129,7 +129,7 @@ namespace _Scripts.Controllers
                     Kill(_spawnedUnits.Count - _points.Count);
                 }
                 for (var i = 0; i < _spawnedUnits.Count; i++) {
-                    _spawnedUnits[i].transform.position = Vector3.MoveTowards(_spawnedUnits[i].transform.position, transform.position + _points[i], 3F * Time.deltaTime);
+                    _spawnedUnits[i].transform.position = Vector3.Lerp(_spawnedUnits[i].transform.position, transform.position + _points[i], 1-Mathf.Exp(-12f*Time.deltaTime));
                 }
             }
         

@@ -14,6 +14,7 @@ namespace _Scripts.Controllers
         private float _moveFactorX;
         private float MoveFactorX => _moveFactorX;
         private Vector3 movementVector;
+        private float steeringYaw;
 
 
         void Update()
@@ -53,7 +54,11 @@ namespace _Scripts.Controllers
             position.x=Mathf.Clamp(position.x+_moveFactorX*Constants.CLAMP_MODIFIER*4,minX,maxX);
             position+=transform.forward*Time.deltaTime*Constants.SPEED_COEFFICIENT;
             transform.position=position;
-            RotateAnimatedRig(_moveFactorX*500);
+            // Pose follows lateral velocity, not pixels per frame.
+            float lateralSpeed=_moveFactorX*Constants.CLAMP_MODIFIER*4/Mathf.Max(Time.deltaTime,.001f);
+            float targetYaw=Mathf.Atan2(lateralSpeed,Constants.SPEED_COEFFICIENT)*Mathf.Rad2Deg;
+            steeringYaw=Mathf.Lerp(steeringYaw,Mathf.Clamp(targetYaw,-28f,28f),1-Mathf.Exp(-14f*Time.deltaTime));
+            RotateAnimatedRig(steeringYaw);
         }
 
         private Vector3 CalculateDirection()
@@ -73,7 +78,7 @@ namespace _Scripts.Controllers
                 // Primitive crowd units have no animated child rig. Rotate their root instead.
                 if (cat == null) continue;
                 Transform rig = cat.rotationTarget != null ? cat.rotationTarget : cat.transform;
-                rig.rotation = Quaternion.Euler(0, Mathf.Clamp(dir, -100F, 100F), 0);
+                rig.rotation = Quaternion.Euler(0, Mathf.Clamp(dir, -28F, 28F), 0);
 
             }
         }

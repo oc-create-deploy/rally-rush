@@ -26,8 +26,8 @@ public class RallyLogoWorld : MonoBehaviour
     }
     public void Build(Corridor[] gates,int stage)
     {
-        violet=Paint(new Color(.49f,.18f,.94f));white=Paint(new Color(.96f,.97f,1));
-        gold=Paint(new Color(1,.72f,.035f));cyan=Paint(new Color(.04f,.64f,1));green=Paint(new Color(.3f,.94f,.06f));
+        violet=Paint(new Color(.38f,.27f,.72f));white=Paint(new Color(.96f,.97f,1));
+        gold=Paint(new Color(1,.72f,.035f));cyan=Paint(new Color(.16f,.68f,.84f));green=Paint(new Color(.38f,.82f,.29f));
         // Keep physical authored deck and walls; repaint instead of masking colliders.
         foreach(var renderer in GetComponentsInChildren<MeshRenderer>())
         {
@@ -35,9 +35,9 @@ public class RallyLogoWorld : MonoBehaviour
             else if(renderer.name.StartsWith("Wall"))renderer.sharedMaterial=violet;
         }
         var camera=Camera.main;
-        if(camera!=null){camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.24f,.73f,1);}
+        if(camera!=null){camera.clearFlags=CameraClearFlags.SolidColor;camera.backgroundColor=new Color(.55f,.81f,.94f);}
         RenderSettings.ambientLight=new Color(.72f,.8f,1);
-        RenderSettings.fog=true;RenderSettings.fogColor=new Color(.35f,.75f,1);
+        RenderSettings.fog=true;RenderSettings.fogColor=new Color(.55f,.81f,.94f);
         RenderSettings.fogMode=FogMode.Linear;RenderSettings.fogStartDistance=65;RenderSettings.fogEndDistance=180;
         // Chunky portal frames are aligned to the ACTUAL gate trigger bounds.
         foreach(var gate in gates)
@@ -51,15 +51,15 @@ public class RallyLogoWorld : MonoBehaviour
             // No opaque crossbar: native capture showed it cutting through math labels.
         }
         // Outside the steering envelope: stepped island silhouettes and waterfalls.
-        for(int i=0;i<14;i++)for(int side=0;side<2;side++)
+        for(int i=0;i<8;i++)for(int side=0;side<2;side++)
         {
             float x=side==0 ? -15-(i%3)*5 : 16+(i%3)*5;
-            float z=10+i*14;
-            float height=5+(i*7%9);
+            float z=10+i*24;
+            float height=3+(i%3);
             Shape("Floating violet island",new Vector3(x,-height*.5f,z),new Vector3(5,height,7),i%2==0?violet:cyan);
             Shape("Island snow cap",new Vector3(x,.08f,z),new Vector3(5.2f,.3f,7.2f),white);
             Shape("Waterfall ribbon",new Vector3(x+2.6f,-6,z),new Vector3(.12f,12,2),cyan);
-            if(i%3==0)for(int c=0;c<3;c++)Shape("Cloud puff",new Vector3(x+c*1.5f,8+(i%4),z+5),new Vector3(3,1.4f,2),white,PrimitiveType.Sphere);
+            if(i%4==0)for(int c=0;c<3;c++)Shape("Cloud puff",new Vector3(x+c*1.5f,8+(i%4),z+5),new Vector3(3,1.4f,2),white,PrimitiveType.Sphere);
         }
         var army=FindObjectOfType<ArmyController>();
         float finish=army.boss!=null ? army.boss.transform.position.z-5 : 115;

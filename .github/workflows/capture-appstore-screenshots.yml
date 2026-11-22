@@ -89,6 +89,18 @@ jobs:
           python3 .github/scripts/rally-native-qa.py
           xcrun simctl spawn "$UDID" log show --last 15m --style compact --predicate 'process == "Rally Rush"' > screenshots/runtime.log || true
 
+      - name: Produce continuous video review deliverable
+        if: always()
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s screenshots/gameplay.mov
+          if ! command -v ffmpeg >/dev/null; then brew install ffmpeg; fi
+          ffprobe -v error -show_streams -show_format -of json screenshots/gameplay.mov > screenshots/video-probe.json
+          # Keep elapsed time and every gameplay segment; no highlight montage.
+          ffmpeg -v error -i screenshots/gameplay.mov -vf 'scale=540:-2' -r 30 -c:v libx264 -crf 24 -pix_fmt yuv420p -an -movflags +faststart screenshots/continuous-review.mp4
+          ffmpeg -v error -i screenshots/continuous-review.mp4 -f null -
+
       - name: Upload screenshot artifact
         if: always()
         uses: actions/upload-artifact@v4
