@@ -40,13 +40,23 @@ def capture(label):
     (out/(label+'.json')).write_text(json.dumps(state(),indent=2))
     subprocess.run(['xcrun','simctl','io',udid,'screenshot',str(out/(label+'.png'))],check=True)
 
-def frozen_capture(label):
+def frozen_capture(label, observed=None):
     # Real player pause, not a QA model write. Keep the course unobscured.
-    tap('PAUSE')
-    deadline=time.time()+5
-    while val('GameFlowManager.playerPaused')!='True' and time.time()<deadline:time.sleep(.1)
-    assert val('GameFlowManager.playerPaused')=='True','Actual player pause missing'
-    before=state();capture(label);after=state()
+    observed=observed if observed is not None else state()
+    pause=[i for i in observed['items'] if i['kind']=='button' and i['interactable'] and i.get('text','').strip()=='PAUSE']
+    assert pause,('Actual pause button not observed',label)
+    requested=time.time()
+    # Use this consistent actual observation, not an extra blocking disk scan
+    # while the short relay continues. Every input is still native XCUITest.
+    action('- tapOn:\n    point: "'+point(pause[0])+'"')
+    deadline=time.time()+20
+    while True:
+        before=state();pause_values={v['key']:v['value'] for v in before['values']}
+        if before['frame']>observed['frame'] and pause_values.get('GameFlowManager.playerPaused')=='True':break
+        assert time.time()<deadline,('Actual fresh player pause missing',label,pause_values)
+        time.sleep(.1)
+    (out/(label+'-pause-request.json')).write_text(json.dumps({'observedFrame':observed['frame'],'observedUtc':observed['utcSeconds'],'requestedUtc':requested,'pausedFrame':before['frame'],'pausedUtc':before['utcSeconds']},indent=2))
+    capture(label);after=state()
     def values(s):return {v['key']:v['value'] for v in s['values']}
     b,a=values(before),values(after)
     if 'clash' in label:
@@ -59,9 +69,12 @@ def frozen_capture(label):
         assert a[key]==b[key],('Pause did not freeze gameplay',key,b[key],a[key])
     (out/(label+'-after.json')).write_text(json.dumps(after,indent=2))
     tap('RESUME')
-    deadline=time.time()+5
-    while val('GameFlowManager.playerPaused')=='True' and time.time()<deadline:time.sleep(.1)
-    assert val('GameFlowManager.playerPaused')=='False','Actual resume missing'
+    deadline=time.time()+20
+    while True:
+        resumed=state();resume_values={v['key']:v['value'] for v in resumed['values']}
+        if resumed['frame']>after['frame'] and resume_values.get('GameFlowManager.playerPaused')=='False':break
+        assert time.time()<deadline,('Actual fresh resume missing',label,resume_values)
+        time.sleep(.1)
 
 def point(item):
     assert 0<item['x']<1 and 0<item['y']<1,item
@@ -161,12 +174,12 @@ while time.time()<deadline:
     snapshot=state();values={v['key']:v['value'] for v in snapshot['values']}
     audit_crowd(snapshot,values)
     if not captured_growth and count_mismatch_since is None and int(values['RadialFormation.amount'])>1 and values.get('GameFlowManager.state')=='Game':
-        frozen_capture('09-grown-crowd-paused');captured_growth=True;continue
+        frozen_capture('09-grown-crowd-paused',snapshot);captured_growth=True;continue
     if not captured_clash and values.get('GameFlowManager.state')=='MiniBattle':
-        frozen_capture('10-clash-paused');captured_clash=True;continue
+        frozen_capture('10-clash-paused',snapshot);captured_clash=True;continue
     if not captured_finale and values.get('BattleController.finaleStage')=='CrowdRelay':
         assert int(values['BattleController.finaleReward'])==int(values['BattleController.finaleCrowd'])*int(values['BattleController.finaleMultiplier'])
-        frozen_capture('11-crowd-relay-paused');captured_finale=True;continue
+        frozen_capture('11-crowd-relay-paused',snapshot);captured_finale=True;continue
     buttons=[i for i in snapshot['items'] if i['kind']=='button' and i['interactable']]
     if any(i.get('text')=='NEXT LEVEL' for i in buttons):
         time.sleep(.6) # Let the actual win popup animation finish before capture/input.
@@ -240,10 +253,10 @@ for expected_level in (1,2,3):
         if any(i.get('text')=='NEXT LEVEL' for i in buttons):break
         assert not any(i['name']=='Restart' for i in buttons),('Earned stage route lost',expected_level,values)
         if values.get('GameFlowManager.state')=='MiniBattle' and not stage_clash:
-            frozen_capture(f'level-{expected_level}-clash-paused');stage_clash=True;continue
+            frozen_capture(f'level-{expected_level}-clash-paused',snapshot);stage_clash=True;continue
         if values.get('BattleController.finaleStage')=='CrowdRelay' and not stage_relay:
             assert int(values['BattleController.finaleReward'])==int(values['BattleController.finaleCrowd'])*int(values['BattleController.finaleMultiplier'])
-            frozen_capture(f'level-{expected_level}-relay-paused');stage_relay=True;continue
+            frozen_capture(f'level-{expected_level}-relay-paused',snapshot);stage_relay=True;continue
         if values.get('GameFlowManager.state')=='Game':
             x,_,z=xyz(values['ArmyMovementController.position'])
             gates=[i for i in snapshot['items'] if i['kind']=='gate' and i['interactable'] and i['shape'] and i['shape'][0]['y']>z+2]

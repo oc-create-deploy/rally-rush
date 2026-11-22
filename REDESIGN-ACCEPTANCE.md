@@ -246,3 +246,15 @@ native path earns levels1/2/3, verifies every gate/clash/relay, actual division
 and genuine running-background/fresh paused return/stable position/manual resume
 checks. No model writes. New compile/native proof required; still not full
 product approval until rendered/moving evidence/course/hazards review passes.
+
+Nov22 01:04: native44967897521 FAIL at level1 relay pause observation, after
+level0 gate/clash/relay/win/next/cold and level1 gate/clash38hero/11enemy passed.
+All13PNG inspected phase10 contact: final image actually shows paused relay
+27x2=54 and RESUME, so missing immediate host flag != proof pause failed.
+Extra pre-input state read removed; actual observed pause-button used directly.
+Pause/resume proof now requires one fresh actual snapshot within20s bounded
+host observation budget (not repeated separate val reads/5s), retains frame/UTC
+request metadata. Enemy>0/relay-stage/stable count+position and real input gates
+unchanged. Fullstage2/3/division/background not reached; no product acceptance.
+Artifact14732414720 CRC checked in memory; original PNG/JSON/logs local/video
+remote. New host proof pending, no source rebuild required.
