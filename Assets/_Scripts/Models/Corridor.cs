@@ -50,9 +50,9 @@ namespace _Scripts.Models
         private void LateUpdate()
         {
             if (gateLabel == null || Camera.main == null) return;
-            // Keep the complete camera-facing label above the gate and track.
-            // Front-face depth alone left the lower glyphs inside the deck.
-            var bounds = GetComponent<Collider>().bounds;
+            // Consumed gates disable their collider; disabled Collider.bounds is empty.
+            // Anchor to the still-visible mesh, so labels do not collapse to origin.
+            var bounds = meshRenderer.bounds;
             gateLabel.transform.position = new Vector3(bounds.center.x, bounds.max.y + 1.5f, bounds.min.z - 1f);
             gateLabel.transform.rotation = Camera.main.transform.rotation;
             // Parent gates are scaled differently; labels have a consistent world size.

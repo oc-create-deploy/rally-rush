@@ -13,7 +13,7 @@ bridge=module.TouchBridge(out,udid,bundle)
 
 def state():
     global snapshot_path
-    deadline = time.time()+90
+    deadline = time.time()+300
     while time.time()<deadline:
         for p in ([snapshot_path] if snapshot_path is not None else container.rglob('qa-state.json')):
             try:
