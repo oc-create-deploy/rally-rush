@@ -1,0 +1,41 @@
+# Logo-led world revision — 2026-11-22
+
+Alex requested models, scenes and better level design matching the actual shipped
+Assets/Brand/RallyRush-AppIcon.png. This reopens prior product acceptance.
+
+Icon audit: round, single-color orange/blue/lime/violet/gold toy runners; white
+floating track; violet rails and islands; cyan sky/waterfalls; lime/cyan math
+portals; candy obstacles; checkered golden finish and crown. The previous angular
+vest/skin/headband crowd and plain course do not deliver that promise.
+
+Implemented on feat/logo-world-2026-11-22:
+- Rounded capsule bodies/limbs and large spherical heads, shared five-color glossy
+  palette, existing opposing limb animation, unchanged gameplay colliders.
+- Rounded red rivals preserve team readability instead of hiding enemies in rainbow.
+- Existing physical deck repainted ivory and walls violet; no fake track surface.
+- Gate portal frames derive from real collider bounds; operation labels retained.
+- Off-course stepped floating islands, cloud puffs, cyan waterfall ribbons, blue
+  distance fog and a crowned checkered finish at the actual finale approach.
+- Studded candy breakaway bumper retains exact one-runner, single-contact cost.
+- Seven-step progression: existing three math lessons, one consolidation lap,
+  then three extra routes with changed choice spacing and arithmetic. New routes
+  build/add vs multiply, compare division vs growth, then high-growth vs attrition.
+  Rival pressure and speed increase with a cap on speed. Geometry remains bounded
+  and steering/collider semantics remain intact. Curving playable tracks and
+  sweeping rollers are NOT implemented: both need proper input/collision work,
+  not decorative geometry pretending to be gameplay.
+
+Reference: Freeplay's Count Masters official store description supports the
+choose/grow/obstacle/clash/finish rhythm, not asset copying:
+https://apps.apple.com/us/app/count-masters-crowd-runner-3d/id1568245971
+“Real war” is ambiguous; no unverified specific title is claimed as studied.
+
+Acceptance is OPEN. Diff/static checks are not Unity compilation or native proof.
+Require fresh simulator export; inspect first-run, moving rainbow silhouettes,
+portal legibility, deck/rail height and scenery occlusion, crowned finish, all
+seven earned levels, exact arithmetic/bumper/clash, pause/resume/cold progress.
+Existing native driver covers first four; extend earned routes to seven rather
+than claiming old captures accept new source. Only after honest visual and
+functional acceptance merge/device export/sign an unused build >=5, then verify
+ASC VALID and actual intended tester/group/build eligible beta separately.
+Build4 remains last delivered version; do not claim this art revision is there.

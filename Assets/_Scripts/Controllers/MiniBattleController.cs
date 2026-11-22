@@ -44,12 +44,12 @@ namespace _Scripts.Controllers
             {
                 var unit=new GameObject("Original rival runner "+i);unit.transform.SetParent(transform,false);
                 unit.transform.localPosition=new Vector3((i%5-2)*.55f,0,2+(i/5)*.6f);
-                MakePart(unit.transform,"Vest",new Vector3(0,.55f,0),new Vector3(.36f,.45f,.25f),PrimitiveType.Cube);
-                MakePart(unit.transform,"Head",new Vector3(0,.93f,0),Vector3.one*.27f,PrimitiveType.Sphere);
-                MakePart(unit.transform,"Left leg",new Vector3(-.1f,.17f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Cube);
-                MakePart(unit.transform,"Right leg",new Vector3(.1f,.17f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Cube);
-                MakePart(unit.transform,"Left arm",new Vector3(-.26f,.55f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Cube);
-                MakePart(unit.transform,"Right arm",new Vector3(.26f,.55f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Cube);
+                MakePart(unit.transform,"Vest",new Vector3(0,.55f,0),new Vector3(.36f,.5f,.28f),PrimitiveType.Capsule);
+                MakePart(unit.transform,"Head",new Vector3(0,.93f,0),Vector3.one*.36f,PrimitiveType.Sphere);
+                MakePart(unit.transform,"Left leg",new Vector3(-.1f,.17f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Capsule);
+                MakePart(unit.transform,"Right leg",new Vector3(.1f,.17f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Capsule);
+                MakePart(unit.transform,"Left arm",new Vector3(-.26f,.55f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Capsule);
+                MakePart(unit.transform,"Right arm",new Vector3(.26f,.55f,0),new Vector3(.12f,.4f,.15f),PrimitiveType.Capsule);
                 enemyRunners.Add(unit);
             }
             var label=new GameObject("Rival count");label.transform.SetParent(transform,false);label.transform.localPosition=new Vector3(0,1.7f,2);

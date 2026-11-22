@@ -15,13 +15,21 @@ public class RallyCourseHazard : MonoBehaviour
     {
         paint=new Material(FindObjectOfType<ArmyController>().RunnerMaterial);
         paint.color=new Color(1f,.35f,.08f);
-        var body=GameObject.CreatePrimitive(PrimitiveType.Cube);body.name="Breakaway post";
-        post=body.transform;post.SetParent(transform,false);post.localPosition=new Vector3(0,.45f,0);post.localScale=new Vector3(.65f,1.4f,.4f);
+        var body=GameObject.CreatePrimitive(PrimitiveType.Capsule);body.name="Candy bumper -1";
+        post=body.transform;post.SetParent(transform,false);post.localPosition=new Vector3(0,.45f,0);post.localScale=new Vector3(.65f,1.4f,.65f);
         body.GetComponent<Collider>().enabled=false;Destroy(body.GetComponent<Collider>());
         body.GetComponent<Renderer>().sharedMaterial=paint;
+        // Soft white studs echo the icon's toy obstacles, within trigger width.
+        for(int i=0;i<3;i++)
+        {
+            var stud=GameObject.CreatePrimitive(PrimitiveType.Sphere);stud.name="Bumper stud";
+            stud.transform.SetParent(post,false);stud.transform.localPosition=new Vector3(0,-.3f+i*.3f,-.45f);
+            stud.transform.localScale=Vector3.one*.22f;
+            stud.GetComponent<Collider>().enabled=false;Destroy(stud.GetComponent<Collider>());
+        }
         var textObject=new GameObject("Hazard cost");textObject.transform.SetParent(transform,false);textObject.transform.localPosition=new Vector3(0,1.5f,0);
         label=textObject.AddComponent<TextMeshPro>();label.font=Resources.Load<TMP_FontAsset>("RallyFont");label.fontSize=3.5f;
-        label.rectTransform.sizeDelta=new Vector2(3,1);label.alignment=TextAlignmentOptions.Center;label.text="POST -1";label.color=Color.white;
+        label.rectTransform.sizeDelta=new Vector2(3,1);label.alignment=TextAlignmentOptions.Center;label.text="BUMPER -1";label.color=Color.white;
     }
     private void Update()
     {

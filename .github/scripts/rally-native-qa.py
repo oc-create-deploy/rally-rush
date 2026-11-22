@@ -268,7 +268,7 @@ result.update({'earnedBestScore':won_best,'earnedBestScoreColdLaunchVerified':Tr
 
 # Real earned stage progression, never PlayerPrefs/model mutation.
 stage_results=[]
-for expected_level in (1,2,3):
+for expected_level in range(1,7):
     assert int(val('LevelController.currentLevel'))==expected_level
     tap('StartButton')
     gate_history={};count_mismatch_since=None
@@ -314,9 +314,9 @@ minimum_snapshot_utc=time.time()
 snapshot_path=None
 subprocess.run(['xcrun','simctl','launch',udid,bundle],check=True)
 container=pathlib.Path(subprocess.check_output(['xcrun','simctl','get_app_container',udid,bundle,'data'],text=True).strip())
-assert int(val('LevelController.currentLevel'))==4,'Four earned levels did not survive cold launch'
-capture('12-earned-level4-cold')
-(out/'earned-stages.json').write_text(json.dumps({'stages':stage_results,'coldEarnedLevel':4,'fullProductAcceptance':False},indent=2))
+assert int(val('LevelController.currentLevel'))==7,'Seven earned levels did not survive cold launch'
+capture('12-earned-level7-cold')
+(out/'earned-stages.json').write_text(json.dumps({'stages':stage_results,'coldEarnedLevel':7,'fullProductAcceptance':False},indent=2))
 # Prewarm Safari while actually paused; this setup is not background acceptance.
 def wait_observation(predicate,after_frame=-1,timeout=20):
     deadline=time.time()+timeout
