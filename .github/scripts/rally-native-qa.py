@@ -5,6 +5,7 @@ udid = os.environ['UDID']; bundle = os.environ['APP_BUNDLE_ID']
 container = pathlib.Path(subprocess.check_output(['xcrun','simctl','get_app_container',udid,bundle,'data'],text=True).strip())
 seq = 0
 snapshot_path = None
+minimum_snapshot_utc = 0
 import importlib.util
 spec=importlib.util.spec_from_file_location('touchbridge',pathlib.Path(__file__).with_name('native-touch-bridge.py'))
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
@@ -19,6 +20,9 @@ def state():
                 s=json.loads(p.read_text())
                 assert not s['errors'],s['errors']
                 if s["frame"] >= 30:
+                    if s['utcSeconds']<minimum_snapshot_utc:
+                        time.sleep(.1)
+                        continue
                     if time.time()-s['utcSeconds']>=10:
                         # Hosted simulator/file I/O may briefly stall. Never
                         # use this stale model for an input/acceptance decision.
@@ -225,7 +229,9 @@ result=json.loads((out/'result.json').read_text());result.update({'realPositiveG
 (out/'result.json').write_text(json.dumps(result,indent=2))
 
 subprocess.run(['xcrun','simctl','terminate',udid,bundle],check=True)
-for snapshot_path in container.rglob('qa-state.json'):snapshot_path.unlink()
+for qa_path in container.rglob('qa-state.json'):qa_path.unlink()
+minimum_snapshot_utc=time.time()
+snapshot_path=None
 subprocess.run(['xcrun','simctl','launch',udid,bundle],check=True)
 # Unity's persistent-data subpath can be recreated on cold launch. Do not
 # pin discovery to the pre-termination recorder location.
@@ -283,6 +289,8 @@ for expected_level in (1,2,3):
     tap('NEXT LEVEL');time.sleep(3)
     assert int(val('LevelController.currentLevel'))==expected_level+1
 subprocess.run(['xcrun','simctl','terminate',udid,bundle],check=True)
+for qa_path in container.rglob('qa-state.json'):qa_path.unlink()
+minimum_snapshot_utc=time.time()
 snapshot_path=None
 subprocess.run(['xcrun','simctl','launch',udid,bundle],check=True)
 container=pathlib.Path(subprocess.check_output(['xcrun','simctl','get_app_container',udid,bundle,'data'],text=True).strip())
@@ -290,31 +298,45 @@ assert int(val('LevelController.currentLevel'))==4,'Four earned levels did not s
 capture('12-earned-level4-cold')
 (out/'earned-stages.json').write_text(json.dumps({'stages':stage_results,'coldEarnedLevel':4,'fullProductAcceptance':False},indent=2))
 # Prewarm Safari while actually paused; this setup is not background acceptance.
-tap('StartButton');time.sleep(.5);tap('PAUSE')
-assert val('GameFlowManager.playerPaused')=='True'
-warm_frame=state()['frame']
+def wait_observation(predicate,after_frame=-1,timeout=20):
+    deadline=time.time()+timeout
+    while True:
+        observation=state();values={v['key']:v['value'] for v in observation['values']}
+        if observation['frame']>after_frame and predicate(observation,values):return observation,values
+        assert time.time()<deadline,('Fresh native observation timed out',after_frame,values)
+        time.sleep(.1)
+
+cold=state();tap('StartButton');began=time.time();retapped=False
+while True:
+    observed=state();observed_values={v['key']:v['value'] for v in observed['values']}
+    pause=[i for i in observed['items'] if i['kind']=='button' and i['interactable'] and i.get('text','').strip()=='PAUSE']
+    if observed['frame']>cold['frame'] and observed_values.get('GameFlowManager.state')=='Game' and pause:
+        action('- tapOn:\n    point: "'+point(pause[0])+'"');break
+    # Exactly one real retap only after a genuinely fresh, still-start frame.
+    if not retapped and time.time()-began>2 and observed['frame']>cold['frame'] and observed_values.get('GameFlowManager.state')=='Start':
+        starts=[i for i in observed['items'] if i['kind']=='button' and i['interactable'] and i['name']=='StartButton']
+        assert starts,'Cold menu recovery start control missing'
+        action('- tapOn:\n    point: "'+point(starts[0])+'"');retapped=True
+    assert time.time()-began<25,('Cold native start/pause setup failed',observed_values)
+    time.sleep(.1)
+paused,pv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True',observed['frame'])
+(out/'background-setup.json').write_text(json.dumps({'coldStartRetapped':retapped,'state':paused},indent=2))
+warm_frame=paused['frame']
 subprocess.run(['xcrun','simctl','launch',udid,'com.apple.mobilesafari'],check=True)
 subprocess.run(['xcrun','simctl','launch',udid,bundle,'--playabilityQA'],check=True)
-deadline=time.time()+20
-while state()['frame']<=warm_frame and time.time()<deadline:time.sleep(.1)
-assert val('GameFlowManager.playerPaused')=='True'
+warmed,wv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True',warm_frame)
 tap('RESUME')
-assert val('GameFlowManager.playerPaused')=='False' and val('GameFlowManager.state')=='Game'
-before=state();(out/'background-before.json').write_text(json.dumps(before,indent=2))
+before,bv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='False' and v.get('GameFlowManager.state')=='Game',warmed['frame'])
+(out/'background-before.json').write_text(json.dumps(before,indent=2))
 subprocess.run(['xcrun','simctl','launch',udid,'com.apple.mobilesafari'],check=True)
 subprocess.run(['xcrun','simctl','io',udid,'screenshot',str(out/'13-system-background.png')],check=True)
 subprocess.run(['xcrun','simctl','launch',udid,bundle,'--playabilityQA'],check=True)
-deadline=time.time()+20
-while state()['frame']<=before['frame'] and time.time()<deadline:time.sleep(.1)
-a=state();av={v['key']:v['value'] for v in a['values']}
-assert av['GameFlowManager.playerPaused']=='True' and av['GameFlowManager.state']=='Pause','Running background did not pause'
+a,av=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True' and v.get('GameFlowManager.state')=='Pause',before['frame'])
 time.sleep(1)
-b=state();bv={v['key']:v['value'] for v in b['values']}
-assert b['frame']>a['frame'] and bv['ArmyMovementController.position']==av['ArmyMovementController.position'],'Foreground resumed itself'
+b,bv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True',a['frame'])
+assert bv['ArmyMovementController.position']==av['ArmyMovementController.position'],'Foreground resumed itself'
 capture('14-background-return-paused')
-tap('RESUME');assert val('GameFlowManager.playerPaused')=='False'
-deadline=time.time()+10
-while val('ArmyMovementController.position')==bv['ArmyMovementController.position'] and time.time()<deadline:time.sleep(.1)
-assert xyz(val('ArmyMovementController.position'))[2]>xyz(bv['ArmyMovementController.position'])[2],'Actual background resume did not move'
+tap('RESUME')
+resumed,rv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='False' and xyz(v['ArmyMovementController.position'])[2]>xyz(bv['ArmyMovementController.position'])[2],b['frame'])
 tap('PAUSE')
 (out/'background-result.json').write_text(json.dumps({'actualSystemAppBackground':True,'freshReturnPaused':True,'stableForeground':True,'nativeResumeMoved':True,'fullProductAcceptance':False},indent=2))

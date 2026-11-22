@@ -258,3 +258,19 @@ request metadata. Enemy>0/relay-stage/stable count+position and real input gates
 unchanged. Fullstage2/3/division/background not reached; no product acceptance.
 Artifact14732414720 CRC checked in memory; original PNG/JSON/logs local/video
 remote. New host proof pending, no source rebuild required.
+
+Nov22 01:23: native44969878047 FAIL before Safari setup: PAUSE button absent
+after cold start's fixed .5s wait. Earned stage1(+12/x3),2(+8/+15),3(+20,/3)
+with actual21/3=7, clash/relay/results all passed. All22PNG inspected phase11
+contact: four stage results and rival/relay captures readable; BUT final cold4
+and final image BLACK. Audit found second cold test failed to remove old JSON,
+so old pre-termination level4 snapshot could satisfy that check! Coldlevel4 is
+NOT yet proven despite earned-stages JSON boolean; first coldlevel1 did delete
+old file and remains valid. Host now deletes old recorder at BOTH cold launches
+and requires timestamp>=this launch before any observation; fresh menu/Game/
+actual Pause button before warmup, one conditional real retap only on fresh
+still-Start frame. No fixed .5s assumption or stale cold acceptance. Subsequent
+background transitions require single fresh actual state, stable return position
+and native resume movement. No product claim until rerun and rendered review.
+Artifact14732834504 CRC verified in memory; originals PNG/JSON/logs local,
+large video remote.
