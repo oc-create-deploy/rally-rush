@@ -343,3 +343,16 @@ Release next: merge/push accepted source, device export (simulator=false), fresh
 unused build>=4, sign/upload, ASC VALID, then independently verify exact intended
 internal tester/group/build and eligible beta state. Simulator acceptance alone
 is NOT replacement TestFlight delivery.
+
+## Replacement distribution verified — Nov22 02:59 UTC
+
+Device export44977270191/main7c1321b and signing/upload44978113270 SUCCESS.
+Fresh ASC exact app6812285914/com.play.crowdrunner replacement build4
+b7808550-53cd-4fc7-aad0-044c702a5f10 is VALID, internal IN_BETA_TESTING.
+Independently re-read actual internal group6990c1f2-1c30-40ad-8d94-b311350217bc
+(`in`): contains that exact build4 and existing intended app-specific tester
+d91e4780-fe64-4f06-8e64-3131f87f3ef5. No attachment mutation needed.
+Protected rally-3d-release-asc-latest.json retains independent relationships.
+Simulator product acceptance AND intended internal distribution are complete.
+No build4 installation, physical-device testing, external beta or public App
+Store publication is claimed. Sequential owner now moves to Merge Foundry.
