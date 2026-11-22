@@ -285,3 +285,25 @@ rejects double advancement, retains before/after raw proof. No model writes.
 All prior gameplay/persistence/strictclash/relay gates unchanged. Cold4/Safari
 not reached this run; remain unproven. Artifact14733619621 CRC verified in memory;
 original PNG/JSON/logs local/video remote. New native proof pending.
+
+Nov22 02:00: native44972853030 SUCCESS all expanded gameplay stages, actual
+21/3=7, four earned levels with genuinely post-launch coldlevel4, Safari
+system-app background/fresh paused return/stable position/native resume. All25
+PNG inspected phase13 contact; paused crowd/clash/relay/stage results readable.
+Native video examined via RAM-backed seekable memfd (no disk movie copy):
+retained120/150/180/210/240s source frames;150s shows actual running84 crowd with
+PAUSE control,120s real moving single runner.210s is startup black, not accepted
+rendered evidence. Store-style capture03 has simulator notification/result, not
+a valid gameplay screenshot. No snapshot runtime errors or missing-tween-target
+warning found. Video14734308395 remains remote; full artifact CRC verified,
+original PNG/JSON/logs and selected native video frames retained locally.
+
+Still sparse course/physical-hazard coverage, so final product acceptance not
+claimed. New source adds an original orange single-use breakaway post at z69
+on the right path: first actual runner contact costs exactly1 once, shows -1
+RUNNER and falls over; left division path remains avoidable. Read-only before/
+after/spent telemetry and native required exact-1 plus actual paused hazard
+capture. Three stage accent colors/roadside course markers clarify designed
+route. Compilation/native visuals and loss counts UNPROVEN. Fresh full native
+including hazard/stages/background plus rendered/moving inspection required
+before merge/device/release; no TestFlight replacement claim yet.

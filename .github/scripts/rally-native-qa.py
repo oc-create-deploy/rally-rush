@@ -160,7 +160,7 @@ tap('StartButton')
 start_deadline=time.time()+3
 while val('GameFlowManager.state')=='Start' and time.time()<start_deadline:time.sleep(.1)
 route=[];boss_taps=0;deadline=time.time()+240
-gate_history={};captured_growth=False;captured_clash=False;captured_finale=False;consistent_samples=0
+gate_history={};captured_growth=False;captured_clash=False;captured_finale=False;captured_hazard=False;consistent_samples=0
 count_mismatch_since=None
 count_mismatches=[]
 
@@ -195,6 +195,10 @@ def audit_crowd(snapshot, values):
 while time.time()<deadline:
     snapshot=state();values={v['key']:v['value'] for v in snapshot['values']}
     audit_crowd(snapshot,values)
+    if values.get('RallyCourseHazard.spent')=='True':
+        assert int(values['RallyCourseHazard.hazardAfter'])==int(values['RallyCourseHazard.hazardBefore'])-1,'Physical post loss must be exactly one'
+        if not captured_hazard and values.get('GameFlowManager.state')=='Game':
+            frozen_capture('09b-breakaway-post-paused',snapshot);captured_hazard=True;continue
     if not captured_growth and count_mismatch_since is None and int(values['RadialFormation.amount'])>1 and values.get('GameFlowManager.state')=='Game':
         frozen_capture('09-grown-crowd-paused',snapshot);captured_growth=True;continue
     if not captured_clash and values.get('GameFlowManager.state')=='MiniBattle':
@@ -232,7 +236,8 @@ while time.time()<deadline:
 else:
     capture('failure-win-timeout');raise AssertionError(('Real winning route timed out',route))
 assert len(gate_history)>=2,('Need at least two actually applied gates',gate_history)
-assert captured_growth,'Native moving grown crowd capture missing'
+assert captured_growth,'Native grown crowd capture missing'
+assert captured_hazard,'Actual physical post loss/capture missing'
 (out/'phase2-diagnostic.json').write_text(json.dumps({'gateArithmetic':gate_history,'consistentCountSamples':consistent_samples,'growthCapture':captured_growth,'clashCapture':captured_clash,'finaleCapture':captured_finale,'fullRedesignAcceptance':False},indent=2))
 (out/'route.json').write_text(json.dumps(route,indent=2))
 capture('06-win')

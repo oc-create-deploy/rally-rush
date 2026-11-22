@@ -9,6 +9,8 @@ using UnityEngine.SceneManagement;
 public class LevelController : MonoBehaviour
 {
     public int currentLevel;
+    private Material courseAccent;
+    private void OnDestroy(){if(courseAccent!=null)Destroy(courseAccent);}
     public List<GameObject> levels = new List<GameObject>();
     public void Awake()
     {
@@ -36,6 +38,20 @@ public class LevelController : MonoBehaviour
         rivals.transform.SetParent(course.transform,false);rivals.transform.position=new Vector3(.45f,2f,82f);
         var trigger=rivals.AddComponent<BoxCollider>();trigger.isTrigger=true;trigger.size=new Vector3(7,3,.6f);
         rivals.AddComponent<_Scripts.Controllers.MiniBattleController>().corridorEnemyCount=6+stage*6;
+        var hazard=new GameObject("Single-use breakaway post");hazard.transform.SetParent(course.transform,false);
+        hazard.transform.position=new Vector3(1.6f,2.1f,69);
+        var hazardCollider=hazard.AddComponent<BoxCollider>();hazardCollider.isTrigger=true;hazardCollider.size=new Vector3(1.1f,2,.6f);
+        hazard.AddComponent<RallyCourseHazard>();
+        courseAccent=new Material(FindObjectOfType<_Scripts.Controllers.ArmyController>().RunnerMaterial);
+        courseAccent.color=stage==0 ? new Color(.05f,.7f,.8f) : stage==1 ? new Color(1f,.65f,.1f) : new Color(.65f,.3f,.85f);
+        for(int i=0;i<10;i++)for(int side=0;side<2;side++)
+        {
+            var marker=GameObject.CreatePrimitive(PrimitiveType.Cube);marker.name="Rally course marker";
+            marker.transform.SetParent(course.transform,false);marker.transform.position=new Vector3(side==0 ? -3.1f : 4f,2.5f,8+i*12);
+            marker.transform.localScale=new Vector3(.15f,1.3f,.3f);
+            marker.GetComponent<Collider>().enabled=false;Destroy(marker.GetComponent<Collider>());
+            marker.GetComponent<Renderer>().sharedMaterial=courseAccent;
+        }
     }
     public void NextLevel()
     {
