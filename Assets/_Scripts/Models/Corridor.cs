@@ -43,14 +43,17 @@ namespace _Scripts.Models
             gateLabel = go.AddComponent<TextMeshPro>();
             gateLabel.font = Resources.Load<TMP_FontAsset>("RallyFont");
             gateLabel.text = OperationLabel;
-            gateLabel.fontSize = 12; gateLabel.alignment = TextAlignmentOptions.Center;
+            gateLabel.fontSize = 8; gateLabel.alignment = TextAlignmentOptions.Center;
             gateLabel.color = Color.white; gateLabel.outlineWidth = .2f;
             gateLabel.rectTransform.sizeDelta = new Vector2(3, 1.5f);
         }
         private void LateUpdate()
         {
             if (gateLabel == null || Camera.main == null) return;
-            gateLabel.transform.position = GetComponent<Collider>().bounds.center + new Vector3(0, .7f, -.6f);
+            // Place the entire billboard in front of the gate mesh, not inside
+            // its volume: native images showed the upper glyphs depth-occluded.
+            var bounds = GetComponent<Collider>().bounds;
+            gateLabel.transform.position = new Vector3(bounds.center.x, bounds.center.y, bounds.min.z - 1f);
             gateLabel.transform.rotation = Camera.main.transform.rotation;
             // Parent gates are scaled differently; labels have a consistent world size.
             var scale = transform.lossyScale;
