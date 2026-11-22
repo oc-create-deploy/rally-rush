@@ -44,6 +44,24 @@ def capture(label):
     (out/(label+'.json')).write_text(json.dumps(state(),indent=2))
     subprocess.run(['xcrun','simctl','io',udid,'screenshot',str(out/(label+'.png'))],check=True)
 
+def advance_level(previous_level):
+    observed=state();deadline=time.time()+20;began=time.time();retapped=False
+    choices=[i for i in observed['items'] if i['kind']=='button' and i['interactable'] and i.get('text','').strip()=='NEXT LEVEL']
+    assert choices,'Actual next-level control missing'
+    action('- tapOn:\n    point: "'+point(choices[0])+'"')
+    while True:
+        current=state();values={v['key']:v['value'] for v in current['values']}
+        level=int(values['LevelController.currentLevel'])
+        assert level<=previous_level+1,('Native next level advanced twice',previous_level,level)
+        if current['frame']>observed['frame'] and level==previous_level+1 and values['GameFlowManager.state']=='Start':
+            (out/f'advance-{previous_level}-proof.json').write_text(json.dumps({'retapped':retapped,'before':observed,'after':current},indent=2));return
+        if not retapped and time.time()-began>2 and current['frame']>observed['frame'] and level==previous_level and values['GameFlowManager.state']=='Pause':
+            buttons=[i for i in current['items'] if i['kind']=='button' and i['interactable'] and i.get('text','').strip()=='NEXT LEVEL']
+            if buttons:
+                action('- tapOn:\n    point: "'+point(buttons[0])+'"');retapped=True
+        assert time.time()<deadline,('Actual earned next-level transition missing',previous_level,values)
+        time.sleep(.1)
+
 def frozen_capture(label, observed=None):
     # Real player pause, not a QA model write. Keep the course unobscured.
     observed=observed if observed is not None else state()
@@ -221,9 +239,7 @@ capture('06-win')
 won_level=int(val('LevelController.currentLevel'))
 won_best=int(val('ScoreManager.bestScore'))
 assert won_best>0, 'Actual win must record a positive best score'
-tap('NEXT LEVEL');time.sleep(4)
-assert val('GameFlowManager.state')=='Start','Next level start failed'
-assert int(val('LevelController.currentLevel'))==won_level+1,'Earned next level did not advance'
+advance_level(won_level)
 capture('07-win-replay')
 result=json.loads((out/'result.json').read_text());result.update({'realPositiveGateRunWon':True,'bossNativeTouches':boss_taps,'winReplay':True,'winAndProgressPersistence':'PERSISTENCE_PENDING'})
 (out/'result.json').write_text(json.dumps(result,indent=2))
@@ -286,8 +302,7 @@ for expected_level in (1,2,3):
     if expected_level==3:assert any(p['operation']=='/3' and p['before']==21 and p['after']==7 for p in gate_history.values()),'Actual division route missing'
     capture(f'level-{expected_level}-result')
     stage_results.append({'level':expected_level,'gates':dict(gate_history),'clash':stage_clash,'relay':stage_relay})
-    tap('NEXT LEVEL');time.sleep(3)
-    assert int(val('LevelController.currentLevel'))==expected_level+1
+    advance_level(expected_level)
 subprocess.run(['xcrun','simctl','terminate',udid,bundle],check=True)
 for qa_path in container.rglob('qa-state.json'):qa_path.unlink()
 minimum_snapshot_utc=time.time()

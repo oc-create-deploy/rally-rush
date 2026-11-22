@@ -274,3 +274,14 @@ background transitions require single fresh actual state, stable return position
 and native resume movement. No product claim until rerun and rendered review.
 Artifact14732834504 CRC verified in memory; originals PNG/JSON/logs local,
 large video remote.
+
+Nov22 01:42: native44971422928 FAIL after level2 result when fixed3s next-level
+assert still saw2, expected3. Inspected level-2-result and final originals in
+phase12-failure: both still actual RALLY COMPLETE39/NEXT LEVEL, so missed input
+or late delivery, not proven source progress loss. Host now requests actual
+observed Next button, waits single fresh frame with exact earned level+1/Start;
+allows exactly one actual retap ONLY after fresh same-level win/Next proof,
+rejects double advancement, retains before/after raw proof. No model writes.
+All prior gameplay/persistence/strictclash/relay gates unchanged. Cold4/Safari
+not reached this run; remain unproven. Artifact14733619621 CRC verified in memory;
+original PNG/JSON/logs local/video remote. New native proof pending.
