@@ -346,6 +346,13 @@ subprocess.run(['xcrun','simctl','launch',udid,'com.apple.mobilesafari'],check=T
 subprocess.run(['xcrun','simctl','launch',udid,bundle,'--playabilityQA'],check=True)
 warmed,wv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True',warm_frame)
 tap('RESUME')
+# Cold level7 wraps to the first course. The centered single runner overlaps
+# its -10 lane if hosted app switching stalls (~11s in 44986746632).
+# Choose the real positive lane with native input before testing backgrounding;
+# never reinterpret a genuine RUN ENDED screen as lifecycle pause success.
+bridge.swipe('80%, 70%','50%, 70%')
+routed,route_values=wait_observation(lambda s,v:v.get('GameFlowManager.state')=='Game' and int(v.get('GameFlowManager.playerCount','0'))>0 and xyz(v['ArmyMovementController.position'])[0]<-.5,warmed['frame'])
+(out/'background-route.json').write_text(json.dumps(routed,indent=2))
 before,bv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='False' and v.get('GameFlowManager.state')=='Game',warmed['frame'])
 (out/'background-before.json').write_text(json.dumps(before,indent=2))
 subprocess.run(['xcrun','simctl','launch',udid,'com.apple.mobilesafari'],check=True)
