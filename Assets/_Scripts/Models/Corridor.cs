@@ -50,10 +50,10 @@ namespace _Scripts.Models
         private void LateUpdate()
         {
             if (gateLabel == null || Camera.main == null) return;
-            // Place the entire billboard in front of the gate mesh, not inside
-            // its volume: native images showed the upper glyphs depth-occluded.
+            // Keep the complete camera-facing label above the gate and track.
+            // Front-face depth alone left the lower glyphs inside the deck.
             var bounds = GetComponent<Collider>().bounds;
-            gateLabel.transform.position = new Vector3(bounds.center.x, bounds.center.y, bounds.min.z - 1f);
+            gateLabel.transform.position = new Vector3(bounds.center.x, bounds.max.y + 1.5f, bounds.min.z - 1f);
             gateLabel.transform.rotation = Camera.main.transform.rotation;
             // Parent gates are scaled differently; labels have a consistent world size.
             var scale = transform.lossyScale;
