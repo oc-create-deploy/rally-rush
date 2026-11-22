@@ -44,7 +44,10 @@ namespace _Scripts.Models
             gateLabel.font = Resources.Load<TMP_FontAsset>("RallyFont");
             gateLabel.text = OperationLabel;
             gateLabel.fontSize = 8; gateLabel.alignment = TextAlignmentOptions.Center;
-            gateLabel.color = Color.white; gateLabel.outlineWidth = .2f;
+            // Billboard floats above the ivory deck: white glyphs disappear against it.
+            gateLabel.color = new Color(.055f, .09f, .19f); gateLabel.outlineWidth = .1f;
+            gateLabel.outlineColor = Color.white;
+            gateLabel.enableWordWrapping = false;
             gateLabel.rectTransform.sizeDelta = new Vector2(3, 1.5f);
         }
         private void LateUpdate()

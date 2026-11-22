@@ -82,7 +82,7 @@ public sealed class NativeQaRecorder : MonoBehaviour
                 {
                     try {object value=Read(c,key);if(value!=null) state.values.Add(new Value{key=type+"."+key,value=Describe(value)});}catch(Exception){}
                 }
-                if(type=="ArmyMovementController" || type=="CameraController" || type=="Cat")
+                if(type=="ArmyMovementController" || type=="CameraController" || type=="Cat" || (type.Contains("TextMeshPro") && c.name=="Gate operation"))
                 {
                     state.values.Add(new Value{key=type+".position",value=c.transform.position.ToString("F3")});
                     var renderer=c.GetComponentInChildren<Renderer>();
