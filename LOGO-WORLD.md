@@ -34,8 +34,8 @@ Acceptance is OPEN. Diff/static checks are not Unity compilation or native proof
 Require fresh simulator export; inspect first-run, moving rainbow silhouettes,
 portal legibility, deck/rail height and scenery occlusion, crowned finish, all
 seven earned levels, exact arithmetic/bumper/clash, pause/resume/cold progress.
-Existing native driver covers first four; extend earned routes to seven rather
-than claiming old captures accept new source. Only after honest visual and
+Native driver now requires all seven earned courses and cold level7; this
+extension has only passed Python compilation, not native execution. Only after honest visual and
 functional acceptance merge/device export/sign an unused build >=5, then verify
 ASC VALID and actual intended tester/group/build eligible beta separately.
 Build4 remains last delivered version; do not claim this art revision is there.
