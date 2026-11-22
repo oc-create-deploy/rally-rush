@@ -39,3 +39,5 @@ extension has only passed Python compilation, not native execution. Only after h
 functional acceptance merge/device export/sign an unused build >=5, then verify
 ASC VALID and actual intended tester/group/build eligible beta separately.
 Build4 remains last delivered version; do not claim this art revision is there.
+
+Native review 44982642738: all 34 original PNGs inspected via three contact sheets; seven earned courses and fresh cold internal level7 (HUD LEVEL8) recorded, division21/3=7 preserved. Rainbow rounded crowd and palette render. NOT accepted: white decorative gate header cuts math text, and near-camera crown/checkered lintel masks relay crowd. Removed opaque gate header and hide finish decoration within18 world units of finish (approach landmark retained; physics unchanged). Requires NEW export/native proof and actual motion review; static checks alone insufficient.

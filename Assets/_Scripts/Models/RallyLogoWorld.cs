@@ -8,6 +8,9 @@ public class RallyLogoWorld : MonoBehaviour
 {
     readonly List<Material> paints=new List<Material>();
     Material violet,white,gold,cyan,green;
+    readonly List<Renderer> finishRenderers=new List<Renderer>();
+    ArmyController finishArmy;
+    float finishZ;
     Material Paint(Color color)
     {
         var material=new Material(FindObjectOfType<ArmyController>().RunnerMaterial){color=color};
@@ -45,7 +48,7 @@ public class RallyLogoWorld : MonoBehaviour
             float y=bounds.center.y;
             foreach(float x in new[]{bounds.min.x,bounds.max.x})
                 Shape("Candy gate upright",new Vector3(x,y,bounds.center.z),new Vector3(.14f,bounds.size.y+.3f,.2f),paint);
-            Shape("Gate header",new Vector3(bounds.center.x,bounds.max.y+.1f,bounds.center.z),new Vector3(bounds.size.x+.15f,.17f,.22f),white);
+            // No opaque crossbar: native capture showed it cutting through math labels.
         }
         // Outside the steering envelope: stepped island silhouettes and waterfalls.
         for(int i=0;i<14;i++)for(int side=0;side<2;side++)
@@ -60,6 +63,8 @@ public class RallyLogoWorld : MonoBehaviour
         }
         var army=FindObjectOfType<ArmyController>();
         float finish=army.boss!=null ? army.boss.transform.position.z-5 : 115;
+        finishArmy=army;finishZ=finish;
+        int firstFinishChild=transform.childCount;
         // Wide crowned arch and checkered lintel: an unmistakable finish landmark.
         foreach(float x in new[]{-3.35f,4.25f})Shape("Golden finish pillar",new Vector3(x,4.2f,finish),new Vector3(.45f,4.5f,.55f),gold);
         for(int row=0;row<2;row++)for(int col=0;col<12;col++)
@@ -71,6 +76,16 @@ public class RallyLogoWorld : MonoBehaviour
             point.rotation=Quaternion.Euler(0,0,(i-1)*-18);
             Shape("Crown jewel",new Vector3(-.1f+i*.55f,8,finish),Vector3.one*.24f,gold,PrimitiveType.Sphere);
         }
+        for(int i=firstFinishChild;i<transform.childCount;i++)
+            finishRenderers.Add(transform.GetChild(i).GetComponent<Renderer>());
+    }
+    void LateUpdate()
+    {
+        // The high arch projects over the relay crowd at close range. Keep the
+        // approach landmark, then remove only decoration before it masks play.
+        if(finishArmy==null)return;
+        bool visible=finishArmy.transform.position.z < finishZ-18f;
+        foreach(var renderer in finishRenderers)if(renderer!=null)renderer.enabled=visible;
     }
     void OnDestroy(){foreach(var paint in paints)if(paint!=null)Destroy(paint);}
 }
