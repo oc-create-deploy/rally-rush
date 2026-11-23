@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: oc-create-deploy/SpinBounce3D
-          ref: 1e9b4b28d768d2bfff357c84198858355243c112
+          ref: 672888e245011e626212f9e2896b85f187dbb653
           ssh-key: ${{ secrets.SPINBOUNCE_REPO_DEPLOY_KEY }}
           persist-credentials: false
           path: app
@@ -212,6 +212,14 @@ jobs:
           VIDEO_PID=$!
           trap 'kill -INT "$VIDEO_PID" 2>/dev/null || true; wait "$VIDEO_PID" || true' EXIT
           python3 app/qa/spin-native-qa.py
+      - name: Real hosted StoreKit purchase and deferred integration
+        if: inputs.simulator
+        timeout-minutes: 15
+        working-directory: app
+        run: |
+          ruby -c qa/storekit/configure.rb
+          ruby qa/storekit/configure.rb
+          xcodebuild -workspace Unity-iPhone.xcworkspace -scheme SpinStoreTests -configuration Release -destination "platform=iOS Simulator,id=$UDID" -derivedDataPath "$RUNNER_TEMP/native" CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO test > "$RUNNER_TEMP/evidence/storekit-tests.log" 2>&1 || { echo 'Hosted StoreKit integration failed; inspect encrypted private log'; exit 1; }
       - name: Encrypt validation evidence
         if: always()
         env:
