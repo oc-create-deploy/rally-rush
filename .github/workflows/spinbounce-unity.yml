@@ -59,10 +59,14 @@ jobs:
           "$HOME/.local/bin/unity" --version
 
       - name: Install browser authorization helper
+        timeout-minutes: 8
         shell: bash
         run: |
-          npm install --no-save playwright@1.55.0 >/dev/null
-          npx playwright install --with-deps chromium >/dev/null
+          helper_dir="$RUNNER_TEMP/spin-unity-browser-helper"
+          mkdir -p "$helper_dir"
+          npm install --prefix "$helper_dir" --no-audit --no-fund playwright@1.55.0
+          "$helper_dir/node_modules/.bin/playwright" install --with-deps chromium
+          echo "NODE_PATH=$helper_dir/node_modules" >> "$GITHUB_ENV"
 
       - name: Sign in to Unity automatically
         shell: bash
