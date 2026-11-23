@@ -13,7 +13,16 @@ bridge=module.TouchBridge(out,udid,bundle)
 # Independent temporal observations continue during blocking native gestures.
 trace_spec=importlib.util.spec_from_file_location('temporaltrace',pathlib.Path(__file__).with_name('native-temporal-trace.py'))
 trace_module=importlib.util.module_from_spec(trace_spec);trace_spec.loader.exec_module(trace_module)
-trace_module.install(out, lambda: snapshot_path, bridge)
+trace_emit = trace_module.install(out, lambda: snapshot_path, bridge, lambda: minimum_snapshot_utc)
+
+def lifecycle(operation, target, *arguments):
+    trace_emit(dict(kind="lifecycle-start", operation=operation, target=target))
+    try:
+        subprocess.run(["xcrun", "simctl", operation, udid, target, *arguments], check=True)
+    except Exception as error:
+        trace_emit(dict(kind="lifecycle-error", operation=operation, target=target, error=str(error)))
+        raise
+    trace_emit(dict(kind="lifecycle-end", operation=operation, target=target))
 
 
 def state():
@@ -254,11 +263,11 @@ capture('07-win-replay')
 result=json.loads((out/'result.json').read_text());result.update({'realPositiveGateRunWon':True,'bossNativeTouches':boss_taps,'winReplay':True,'winAndProgressPersistence':'PERSISTENCE_PENDING'})
 (out/'result.json').write_text(json.dumps(result,indent=2))
 
-subprocess.run(['xcrun','simctl','terminate',udid,bundle],check=True)
+lifecycle('terminate', bundle)
 for qa_path in container.rglob('qa-state.json'):qa_path.unlink()
 minimum_snapshot_utc=time.time()
 snapshot_path=None
-subprocess.run(['xcrun','simctl','launch',udid,bundle],check=True)
+lifecycle('launch', bundle)
 # Unity's persistent-data subpath can be recreated on cold launch. Do not
 # pin discovery to the pre-termination recorder location.
 container = pathlib.Path(subprocess.check_output(['xcrun','simctl','get_app_container',udid,bundle,'data'],text=True).strip())
@@ -313,11 +322,11 @@ for expected_level in range(1,7):
     capture(f'level-{expected_level}-result')
     stage_results.append({'level':expected_level,'gates':dict(gate_history),'clash':stage_clash,'relay':stage_relay})
     advance_level(expected_level)
-subprocess.run(['xcrun','simctl','terminate',udid,bundle],check=True)
+lifecycle('terminate', bundle)
 for qa_path in container.rglob('qa-state.json'):qa_path.unlink()
 minimum_snapshot_utc=time.time()
 snapshot_path=None
-subprocess.run(['xcrun','simctl','launch',udid,bundle],check=True)
+lifecycle('launch', bundle)
 container=pathlib.Path(subprocess.check_output(['xcrun','simctl','get_app_container',udid,bundle,'data'],text=True).strip())
 assert int(val('LevelController.currentLevel'))==7,'Seven earned levels did not survive cold launch'
 capture('12-earned-level7-cold')
@@ -347,8 +356,8 @@ while True:
 paused,pv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True',observed['frame'])
 (out/'background-setup.json').write_text(json.dumps({'coldStartRetapped':retapped,'state':paused},indent=2))
 warm_frame=paused['frame']
-subprocess.run(['xcrun','simctl','launch',udid,'com.apple.mobilesafari'],check=True)
-subprocess.run(['xcrun','simctl','launch',udid,bundle,'--playabilityQA'],check=True)
+lifecycle('launch', 'com.apple.mobilesafari')
+lifecycle('launch', bundle, '--playabilityQA')
 warmed,wv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True',warm_frame)
 tap('RESUME')
 # Cold level7 wraps to the first course. The centered single runner overlaps
@@ -360,9 +369,9 @@ routed,route_values=wait_observation(lambda s,v:v.get('GameFlowManager.state')==
 (out/'background-route.json').write_text(json.dumps(routed,indent=2))
 before,bv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='False' and v.get('GameFlowManager.state')=='Game',warmed['frame'])
 (out/'background-before.json').write_text(json.dumps(before,indent=2))
-subprocess.run(['xcrun','simctl','launch',udid,'com.apple.mobilesafari'],check=True)
+lifecycle('launch', 'com.apple.mobilesafari')
 subprocess.run(['xcrun','simctl','io',udid,'screenshot',str(out/'13-system-background.png')],check=True)
-subprocess.run(['xcrun','simctl','launch',udid,bundle,'--playabilityQA'],check=True)
+lifecycle('launch', bundle, '--playabilityQA')
 a,av=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True' and v.get('GameFlowManager.state')=='Pause',before['frame'])
 time.sleep(1)
 b,bv=wait_observation(lambda s,v:v.get('GameFlowManager.playerPaused')=='True',a['frame'])
