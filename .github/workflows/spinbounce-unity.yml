@@ -186,9 +186,14 @@ jobs:
           APP=$(find "$RUNNER_TEMP/native/Build/Products/Release-iphonesimulator" -maxdepth 1 -name "*.app" -print -quit)
           test -n "$APP"
           xcrun simctl install "$DEVICE" "$APP"
-          xcrun simctl launch --console-pty "$DEVICE" com.spin.bounce > "$RUNNER_TEMP/launch.log" 2>&1 &
+          # Synchronous launch exposes launch errors/PID; console-pty may block before launch.
+          xcrun simctl launch "$DEVICE" com.spin.bounce > "$RUNNER_TEMP/launch.log" 2>&1 || { cat "$RUNNER_TEMP/launch.log"; exit 1; }
           sleep 25
-          xcrun simctl spawn "$DEVICE" launchctl list | grep com.spin.bounce
+          xcrun simctl spawn "$DEVICE" launchctl list > "$RUNNER_TEMP/processes.log"
+          if ! grep com.spin.bounce "$RUNNER_TEMP/processes.log"; then
+            xcrun simctl spawn "$DEVICE" log show --last 3m --style compact --predicate 'process == "SpinBounce3D" OR eventMessage CONTAINS "com.spin.bounce"' > "$RUNNER_TEMP/runtime.log" 2>&1 || true
+            exit 1
+          fi
           xcrun simctl io "$DEVICE" screenshot "$RUNNER_TEMP/smoke.png"
           if grep -E 'NullReferenceException|MissingMethodException|DllNotFoundException|Shader.*not found' "$RUNNER_TEMP/launch.log"; then exit 1; fi
       - name: Real native gameplay gestures, pause and persistence checks
@@ -209,7 +214,7 @@ jobs:
           EXPORT_PASSWORD: ${{ secrets.SPINBOUNCE_REPO_DEPLOY_KEY }}
         run: |
           mkdir -p "$RUNNER_TEMP/evidence"
-          for f in xcode.log launch.log smoke.png; do
+          for f in xcode.log launch.log processes.log runtime.log smoke.png; do
             if [ -f "$RUNNER_TEMP/$f" ]; then cp "$RUNNER_TEMP/$f" "$RUNNER_TEMP/evidence/"; fi
           done
           tar -czf "$RUNNER_TEMP/evidence.tar.gz" -C "$RUNNER_TEMP/evidence" .
