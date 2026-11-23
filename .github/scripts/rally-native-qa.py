@@ -10,6 +10,11 @@ import importlib.util
 spec=importlib.util.spec_from_file_location('touchbridge',pathlib.Path(__file__).with_name('native-touch-bridge.py'))
 module=importlib.util.module_from_spec(spec);spec.loader.exec_module(module)
 bridge=module.TouchBridge(out,udid,bundle)
+# Independent temporal observations continue during blocking native gestures.
+trace_spec=importlib.util.spec_from_file_location('temporaltrace',pathlib.Path(__file__).with_name('native-temporal-trace.py'))
+trace_module=importlib.util.module_from_spec(trace_spec);trace_spec.loader.exec_module(trace_module)
+trace_module.install(out, lambda: snapshot_path, bridge)
+
 
 def state():
     global snapshot_path
