@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: oc-create-deploy/SpinBounce3D
-          ref: 866f6e4
+          ref: ad368dceb1ebc50d8533755ac91b1e63aaafda25
           ssh-key: ${{ secrets.SPINBOUNCE_REPO_DEPLOY_KEY }}
           persist-credentials: false
           path: app
@@ -171,7 +171,9 @@ jobs:
           DEVICE=$(python3 -c 'import json,os; d=json.load(open(os.environ["RUNNER_TEMP"]+"/devices.json")); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if "iPhone" in v["name"]))')
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b
-          xcrun simctl install "$DEVICE" "$RUNNER_TEMP/native/Build/Products/Release-iphonesimulator/SpinBounce 3D.app"
+          APP=$(find "$RUNNER_TEMP/native/Build/Products/Release-iphonesimulator" -maxdepth 1 -name "*.app" -print -quit)
+          test -n "$APP"
+          xcrun simctl install "$DEVICE" "$APP"
           xcrun simctl launch --console-pty "$DEVICE" com.spin.bounce > "$RUNNER_TEMP/launch.log" 2>&1 &
           sleep 25
           xcrun simctl spawn "$DEVICE" launchctl list | grep com.spin.bounce
