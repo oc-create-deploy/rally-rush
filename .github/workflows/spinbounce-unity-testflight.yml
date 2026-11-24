@@ -327,6 +327,7 @@ jobs:
           t.build_configurations.each do |c|
             c.build_settings['DEVELOPMENT_TEAM'] = ENV.fetch('APPLE_TEAM_ID')
             c.build_settings['CODE_SIGN_STYLE'] = 'Manual'
+            c.build_settings.keys.grep(/\ACODE_SIGN_IDENTITY(?:\[|\z)/).each { |key| c.build_settings.delete(key) }
             c.build_settings['CODE_SIGN_IDENTITY'] = 'Apple Distribution'
             if t.name == 'Unity-iPhone'
               c.build_settings['PROVISIONING_PROFILE_SPECIFIER'] = ENV.fetch('PROFILE_NAME')
@@ -339,7 +340,7 @@ jobs:
         RUBY
     - name: Archive and export signed Unity IPA
       run: |-
-        xcodebuild -workspace Unity-iPhone.xcworkspace -scheme Unity-iPhone -configuration Release -destination generic/platform=iOS -archivePath build/SpinBounce3D.xcarchive archive > "$RUNNER_TEMP/archive.log" 2>&1 || { tail -100 "$RUNNER_TEMP/archive.log"; exit 1; }
+        xcodebuild -workspace Unity-iPhone.xcworkspace -scheme Unity-iPhone -configuration Release -destination generic/platform=iOS -archivePath build/SpinBounce3D.xcarchive CODE_SIGN_IDENTITY="Apple Distribution" archive > "$RUNNER_TEMP/archive.log" 2>&1 || { tail -100 "$RUNNER_TEMP/archive.log"; exit 1; }
         python3 -c "import glob,plistlib; p=plistlib.load(open(glob.glob('build/SpinBounce3D.xcarchive/Products/Applications/*.app/Info.plist')[0],'rb')); assert p['CFBundleIdentifier']=='com.spin.bounce' and p['CFBundleVersion']=='55' and p['UIDeviceFamily']==[1]"
         xcodebuild -exportArchive -archivePath build/SpinBounce3D.xcarchive -exportPath build/export -exportOptionsPlist "$RUNNER_TEMP/ExportOptions.plist"
     - name: Upload to TestFlight
