@@ -31,7 +31,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: oc-create-deploy/SpinBounce3D
-          ref: 936a9fcbd8c1475379decc6e5a08845cdef23359
+          ref: 96c93ec16ca1039fca1ad4b68d71fc3b2906198d
           ssh-key: ${{ secrets.SPINBOUNCE_REPO_DEPLOY_KEY }}
           persist-credentials: false
           path: app
