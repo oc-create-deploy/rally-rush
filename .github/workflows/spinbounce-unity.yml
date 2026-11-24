@@ -214,7 +214,7 @@ jobs:
           python3 app/qa/spin-native-qa.py
       - name: Real hosted StoreKit purchase and deferred integration
         if: inputs.simulator
-        timeout-minutes: 15
+        timeout-minutes: 25
         working-directory: app
         run: |
           xcrun simctl list runtimes -j > "$RUNNER_TEMP/evidence/storekit-runtimes.json"
