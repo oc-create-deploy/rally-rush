@@ -224,7 +224,7 @@ jobs:
           python3 qa/storekit/cancel-sheet.py &
           CANCEL_DRIVER=$!
           trap 'kill "$CANCEL_DRIVER" 2>/dev/null || true' EXIT
-          xcodebuild -workspace Unity-iPhone.xcworkspace -scheme SpinStoreTests -configuration Release -destination "platform=iOS Simulator,id=$UDID" -derivedDataPath "$RUNNER_TEMP/native" CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO -only-testing:SpinStoreTests/SpinStoreTests/testZZPurchaseSheetCancellationDoesNotCredit test > "$RUNNER_TEMP/evidence/storekit-tests.log" 2>&1 || { echo 'Hosted StoreKit integration failed; inspect encrypted private log'; exit 1; }
+          xcodebuild -workspace Unity-iPhone.xcworkspace -scheme SpinStoreTests -configuration Release -destination "platform=iOS Simulator,id=$UDID" -derivedDataPath "$RUNNER_TEMP/native" CODE_SIGNING_ALLOWED=NO -parallel-testing-enabled NO test > "$RUNNER_TEMP/evidence/storekit-tests.log" 2>&1 || { echo 'Hosted StoreKit integration failed; inspect encrypted private log'; exit 1; }
           wait "$CANCEL_DRIVER"
       - name: Verify purchased ammo and dedup receipts survive cold launch
         if: inputs.simulator
