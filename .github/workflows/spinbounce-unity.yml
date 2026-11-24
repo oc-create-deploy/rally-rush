@@ -183,7 +183,7 @@ jobs:
         if: inputs.simulator
         run: |
           xcrun simctl list devices available -j > "$RUNNER_TEMP/devices.json"
-          DEVICE=$(python3 -c 'import json,os; d=json.load(open(os.environ["RUNNER_TEMP"]+"/devices.json")); print(next(v["udid"] for k,vs in d["devices"].items() if "iOS" in k for v in vs if "iPhone" in v["name"]))')
+          DEVICE=$(python3 -c 'import json,os; d=json.load(open(os.environ["RUNNER_TEMP"]+"/devices.json")); print(next(v["udid"] for k,vs in d["devices"].items() if k == "com.apple.CoreSimulator.SimRuntime.iOS-26-2" for v in vs if "iPhone" in v["name"] and v.get("isAvailable", False)))')
           echo "UDID=$DEVICE" >> "$GITHUB_ENV"
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b
