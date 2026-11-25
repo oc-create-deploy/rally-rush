@@ -236,10 +236,60 @@ jobs:
           MAESTRO_DISABLE_UPDATE_CHECK: 'true'
         run: |
           mkdir -p "$RUNNER_TEMP/evidence"
-          xcrun simctl io "$UDID" recordVideo --codec=h264 --force "$RUNNER_TEMP/evidence/gameplay.mov" &
-          VIDEO_PID=$!
-          trap 'kill -INT "$VIDEO_PID" 2>/dev/null || true; wait "$VIDEO_PID" || true' EXIT
-          python3 app/qa/run-idb-qa.py
+          # Bounded unrecorded host baseline; no gestures or admission relaxation.
+          python3 - <<'PYTHON'
+          import json, os, pathlib, subprocess, sys, time
+          evidence = pathlib.Path(os.environ['RUNNER_TEMP']) / 'evidence'
+          def phase(name, **details):
+              with (evidence / 'recording-phases.jsonl').open('a') as journal:
+                  journal.write(json.dumps(dict(phase=name, monotonic=time.monotonic(), utc=time.time(), **details)) + '\n')
+          phase('pre_record_baseline_start', requested_interval_seconds=1.0, duration_seconds=30.0, purpose='noncausal_unrecorded_host_diagnostic')
+          with (evidence / 'pre-record-collector.log').open('x') as log:
+              try:
+                  result = subprocess.run([sys.executable, '-c', "import importlib.util,sys; s=importlib.util.spec_from_file_location('collector','app/qa/collect-host-diagnostics.py'); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); n,v=m.collect(sys.argv[1],duration=30.0,interval=1.0); sys.exit(0 if sys.platform=='darwin' and v>0 else 2)", str(evidence / 'pre-record-host.jsonl')], stdout=log, stderr=subprocess.STDOUT, timeout=45)
+                  code = result.returncode
+              except subprocess.TimeoutExpired:
+                  log.write('Bounded baseline timed out; no native success claimed\n')
+                  code = 124
+          phase('pre_record_baseline_end')
+          sys.exit(code)
+          PYTHON
+          python3 - <<'PYTHON'
+          import json, os, pathlib, signal, subprocess, sys, time
+          evidence = pathlib.Path(os.environ['RUNNER_TEMP']) / 'evidence'
+          def phase(name, **details):
+              with (evidence / 'recording-phases.jsonl').open('a') as journal:
+                  journal.write(json.dumps(dict(phase=name, monotonic=time.monotonic(), utc=time.time(), **details)) + '\n')
+          recorder = subprocess.Popen(['xcrun', 'simctl', 'io', os.environ['UDID'], 'recordVideo', '--codec=h264', '--force', str(evidence / 'gameplay.mov')])
+          code = 1
+          clean = False
+          try:
+              phase('recording_process_spawned_not_ready_proof', pid=recorder.pid)
+              if recorder.poll() is not None:
+                  phase('recording_exited_before_gameplay', recorder_exit=recorder.returncode)
+                  raise RuntimeError('Recorder exited before gameplay; no video acceptance')
+              code = subprocess.run([sys.executable, 'app/qa/run-idb-qa.py']).returncode
+              if recorder.poll() is not None:
+                  phase('recording_exited_during_gameplay', recorder_exit=recorder.returncode)
+                  raise RuntimeError('Recorder exited during gameplay; continuous video unproven')
+          finally:
+              try:
+                  recorder.send_signal(signal.SIGINT)
+                  recorder.wait(timeout=15)
+                  clean = recorder.returncode == 0
+              except subprocess.TimeoutExpired:
+                  recorder.kill()
+                  try:
+                      recorder.wait(timeout=5)
+                  except subprocess.TimeoutExpired:
+                      phase('recording_cleanup_failed_after_kill')
+                      raise
+                  phase('recording_cleanup_forced_kill')
+              except ProcessLookupError:
+                  recorder.wait(timeout=5)
+              phase('recording_cleanup_end', recorder_exit=recorder.returncode, clean=clean)
+          sys.exit(code if code else (0 if clean else 1))
+          PYTHON
       - name: Real hosted StoreKit purchase and deferred integration
         if: inputs.simulator
         timeout-minutes: 25
