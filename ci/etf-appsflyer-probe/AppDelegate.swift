@@ -18,14 +18,34 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, AppsFlyerLibDelegat
     guard !key.isEmpty else {result["error"]="Missing probe credential";save();return true}
     window=UIWindow(frame:UIScreen.main.bounds)
     let view=UIViewController();view.view.backgroundColor = .white;window?.rootViewController=view;window?.makeKeyAndVisible()
-    let af=AppsFlyerLib.shared();af.appsFlyerDevKey=key;af.appleAppID="6782401897";af.delegate=self;af.isDebug=false
+    let af=AppsFlyerLib.shared()
+#if AF_SDK_V7
+    af.initialize(devKey:key,appId:"6782401897")
+#else
+    af.appsFlyerDevKey=key;af.appleAppID="6782401897"
+#endif
+    af.delegate=self;af.isDebug=false
     af.disableAdvertisingIdentifier=true
     af.setSharingFilterForPartners(["all"])
     af.setConsentData(AppsFlyerConsent(isUserSubjectToGDPR:NSNumber(value:true),hasConsentForDataUsage:NSNumber(value:true),hasConsentForAdsPersonalization:NSNumber(value:false),hasConsentForAdStorage:NSNumber(value:false)))
-    result["sdkVersion"]=af.getSDKVersion();result["configured"]=true;save()
+    #if AF_SDK_V7
+    result["sdkVersion"]=af.getSdkVersion()
+#else
+    result["sdkVersion"]=af.getSDKVersion()
+#endif
+    result["osVersion"]=UIDevice.current.systemVersion
+    result["configured"]=true;save()
+#if AF_SDK_V7
+    af.registerSessionReadyListener { self.beginSession() }
+#endif
     return true
   }
   func applicationDidBecomeActive(_ application:UIApplication) {
+#if !AF_SDK_V7
+    beginSession()
+#endif
+  }
+  func beginSession() {
     guard !key.isEmpty && !started else{return};started=true
     AppsFlyerLib.shared().isStopped=false
     AppsFlyerLib.shared().start(completionHandler:{ response,error in
