@@ -43,6 +43,19 @@ jobs:
           python -m compileall -q . > "$RUNNER_TEMP/private-compile.log" 2>&1 || exit 1
           git diff --check || exit 1
           echo 'Private Python suite and compilation PASSED. No deployment or real-store proof claimed.'
+      - name: Encrypt private diagnostic evidence
+        if: failure()
+        env:
+          EVIDENCE_KEY: ${{ secrets.ATTRIBUTION_CI_EVIDENCE_KEY }}
+        run: |
+          mkdir -p encrypted-evidence
+          openssl enc -aes-256-cbc -pbkdf2 -salt -in "$RUNNER_TEMP/private-tests.log" -out encrypted-evidence/tests.log.enc -pass env:EVIDENCE_KEY
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: encrypted-attribution-diagnostics
+          path: encrypted-evidence/
+          retention-days: 3
       - name: Remove private checkout and logs
         if: always()
         run: |
