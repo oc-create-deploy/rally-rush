@@ -1,0 +1,30 @@
+name: ETF AppsFlyer isolated SDK probe
+on:
+  workflow_dispatch:
+    inputs:
+      sdk_version:
+        description: Official native SDK version to diagnose
+        required: true
+        default: '6.17.7'
+permissions:
+  contents: read
+concurrency:
+  group: etf-appsflyer-isolated-probe
+  cancel-in-progress: false
+jobs:
+  probe:
+    runs-on: macos-15
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run actual native SDK on iOS simulator
+        env:
+          SDK_VERSION: ${{ inputs.sdk_version }}
+          AF_DEV_KEY: ${{ secrets.ETF_APPSFLYER_PROBE_DEV_KEY }}
+        run: python3 ci/etf-appsflyer-probe/probe.py
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: sanitized-sdk-probe-${{ inputs.sdk_version }}
+          path: safe-results/
+          retention-days: 3
