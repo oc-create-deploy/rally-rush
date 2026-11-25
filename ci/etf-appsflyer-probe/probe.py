@@ -16,6 +16,7 @@ framework_dir=framework/slice['LibraryIdentifier']
 app=work/'AttributionProbe.app';app.mkdir(exist_ok=True)
 sdk=subprocess.check_output(['xcrun','--sdk','iphonesimulator','--show-sdk-path'],text=True).strip()
 command=['xcrun','--sdk','iphonesimulator','swiftc','-sdk',sdk,'-target',arch+'-apple-ios18.0-simulator','-F',str(framework_dir),'-framework','AppsFlyerLib','-framework','UIKit','-framework','StoreKit','-framework','AdSupport','-framework','AppTrackingTransparency','-framework','SystemConfiguration','-framework','Security','-framework','WebKit','-Xlinker','-ObjC','-lz','-lc++',str(root/'ci/etf-appsflyer-probe/AppDelegate.swift'),'-o',str(app/'AttributionProbe')]
+if int(version.split('.')[0])>=7:command.extend(['-D','AF_SDK_V7'])
 run(command)
 with (app/'Info.plist').open('wb') as f:plistlib.dump({'CFBundleIdentifier':'com.etf.radar','CFBundleExecutable':'AttributionProbe','CFBundleName':'AttributionProbe','CFBundlePackageType':'APPL','CFBundleShortVersionString':'0.0.1','CFBundleVersion':'1','MinimumOSVersion':'18.0','LSRequiresIPhoneOS':True,'UIDeviceFamily':[1],'UILaunchScreen':{}},f)
 run(['codesign','--force','--sign','-',str(app)])
