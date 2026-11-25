@@ -1,0 +1,55 @@
+name: Attribution private build
+on:
+  workflow_dispatch:
+    inputs:
+      source_sha:
+        description: Exact private attribution-platform commit (40 hex)
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: attribution-private-build
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Validate immutable source
+        env:
+          SOURCE_SHA: ${{ inputs.source_sha }}
+        run: '[[ "$SOURCE_SHA" =~ ^[0-9a-f]{40}$ ]]'
+      - uses: actions/checkout@v4
+        with:
+          repository: oc-create-deploy/attribution-platform
+          ref: ${{ inputs.source_sha }}
+          ssh-key: ${{ secrets.ATTRIBUTION_REPO_DEPLOY_KEY }}
+          persist-credentials: false
+          path: private-source
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate private application without publishing source or logs
+        working-directory: private-source
+        shell: bash
+        run: |
+          set +e
+          python -m unittest discover -s tests -q > "$RUNNER_TEMP/private-tests.log" 2>&1
+          result=$?
+          if [ "$result" -ne 0 ]; then
+            echo 'Private Python test suite FAILED; detailed logs deliberately not published.'
+            exit "$result"
+          fi
+          python -m compileall -q . > "$RUNNER_TEMP/private-compile.log" 2>&1 || exit 1
+          git diff --check || exit 1
+          echo 'Private Python suite and compilation PASSED. No deployment or real-store proof claimed.'
+      - name: Remove private checkout and logs
+        if: always()
+        run: |
+          python - <<'CLEANUP'
+          import os, shutil
+          from pathlib import Path
+          shutil.rmtree('private-source', ignore_errors=True)
+          for name in ('private-tests.log', 'private-compile.log'):
+              (Path(os.environ['RUNNER_TEMP']) / name).unlink(missing_ok=True)
+          CLEANUP
