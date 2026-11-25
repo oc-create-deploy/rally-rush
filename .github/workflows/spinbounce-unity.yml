@@ -3,6 +3,11 @@ name: SpinBounce Unity native validation
 on:
   workflow_dispatch:
     inputs:
+      diagnostics_only:
+        description: Read-only Darwin host diagnostics; no Unity export or gameplay
+        type: boolean
+        required: false
+        default: false
       simulator:
         description: Export for iOS Simulator screenshot capture
         type: boolean
@@ -15,6 +20,7 @@ permissions:
 
 jobs:
   build-ios:
+    if: ${{ !inputs.diagnostics_only }}
     defaults:
       run:
         working-directory: app/Unity
@@ -269,3 +275,48 @@ jobs:
           name: spinbounce-encrypted-validation
           path: ${{ runner.temp }}/evidence.enc
           retention-days: 1
+
+  host-diagnostics:
+    if: inputs.diagnostics_only
+    runs-on: macos-15
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: oc-create-deploy/SpinBounce3D
+          ref: e038d9ad4ff26d3f09d2290670d0f0834dca4699
+          ssh-key: ${{ secrets.SPINBOUNCE_REPO_DEPLOY_KEY }}
+          persist-credentials: false
+          path: app
+      - name: Bounded read-only CPU and wake diagnostics
+        timeout-minutes: 2
+        run: |
+          test "$(uname -m)" = arm64
+          mkdir -p "$RUNNER_TEMP/evidence"
+          python3 - <<'PYTHON'
+          import os, subprocess, sys
+          from pathlib import Path
+          output = Path(os.environ['RUNNER_TEMP']) / 'evidence'
+          with (output / 'collector.log').open('x') as log:
+              try:
+                  result = subprocess.run([sys.executable, 'app/.github/scripts/collect-host-diagnostics.py', str(output / 'host.jsonl')], stdout=log, stderr=subprocess.STDOUT, timeout=45)
+              except subprocess.TimeoutExpired:
+                  log.write('Collector exceeded45s wall timeout; no native success claimed\n')
+                  raise SystemExit(124)
+          raise SystemExit(result.returncode)
+          PYTHON
+      - name: Encrypt diagnostic evidence
+        if: always()
+        env:
+          EXPORT_PASSWORD: ${{ secrets.SPINBOUNCE_REPO_DEPLOY_KEY }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/evidence"
+          tar -czf "$RUNNER_TEMP/diagnostic.tar.gz" -C "$RUNNER_TEMP/evidence" .
+          openssl enc -aes-256-cbc -salt -pbkdf2 -in "$RUNNER_TEMP/diagnostic.tar.gz" -out "$RUNNER_TEMP/diagnostic.enc" -pass env:EXPORT_PASSWORD
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: spinbounce-encrypted-host-diagnostic
+          path: ${{ runner.temp }}/diagnostic.enc
+          retention-days: 1
+          if-no-files-found: error
