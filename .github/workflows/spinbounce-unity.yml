@@ -215,6 +215,24 @@ jobs:
           echo "UDID=$DEVICE" >> "$GITHUB_ENV"
           xcrun simctl boot "$DEVICE"
           xcrun simctl bootstatus "$DEVICE" -b
+          mkdir -p "$RUNNER_TEMP/evidence"
+          python3 - <<'PYTHON'
+          import json, os, pathlib, subprocess, sys, time
+          evidence = pathlib.Path(os.environ['RUNNER_TEMP']) / 'evidence'
+          def phase(name, **details):
+              with (evidence / 'recording-phases.jsonl').open('a') as journal:
+                  journal.write(json.dumps(dict(phase=name, monotonic=time.monotonic(), utc=time.time(), **details)) + '\n')
+          phase('pre_launch_baseline_start', requested_interval_seconds=1.0, duration_seconds=30.0, purpose='noncausal_booted_before_install_host_diagnostic')
+          with (evidence / 'pre-launch-collector.log').open('x') as log:
+              try:
+                  result = subprocess.run([sys.executable, '-c', "import importlib.util,sys; s=importlib.util.spec_from_file_location('collector','app/qa/collect-host-diagnostics.py'); m=importlib.util.module_from_spec(s); s.loader.exec_module(m); n,v=m.collect(sys.argv[1],duration=30.0,interval=1.0); sys.exit(0 if sys.platform=='darwin' and v>0 else 2)", str(evidence / 'pre-launch-host.jsonl')], stdout=log, stderr=subprocess.STDOUT, timeout=45)
+                  code = result.returncode
+              except subprocess.TimeoutExpired:
+                  log.write('Bounded baseline timed out; no native success claimed\n')
+                  code = 124
+          phase('pre_launch_baseline_end')
+          sys.exit(code)
+          PYTHON
           APP=$(find "$RUNNER_TEMP/native/Build/Products/Release-iphonesimulator" -maxdepth 1 -name "*.app" -print -quit)
           test -n "$APP"
           xcrun simctl install "$DEVICE" "$APP"
