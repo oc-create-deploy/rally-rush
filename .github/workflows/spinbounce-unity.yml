@@ -149,7 +149,7 @@ jobs:
           if-no-files-found: error
   native-validation:
     needs: build-ios
-    runs-on: ${{ inputs.simulator && 'macos-15' || 'macos-26' }}
+    runs-on: macos-26
     timeout-minutes: 45
     steps:
       - name: Verify alternate simulator host compatibility
