@@ -388,6 +388,16 @@ jobs:
         if: inputs.simulator
         working-directory: app
         run: python3 qa/storekit/cold-purchase.py
+      - name: Bounded private crash inventory
+        if: always()
+        run: |
+          python3 - <<'PYINVENTORY'
+          import subprocess, sys
+          try:
+              subprocess.run([sys.executable, '-c', "import json, os, pathlib, time\nstart = time.monotonic()\nroots = [pathlib.Path.home() / 'Library/Logs/DiagnosticReports']\nudid = os.environ.get('UDID', '')\nif udid and all(c in '0123456789abcdefABCDEF-' for c in udid):\n    roots.append(pathlib.Path.home() / 'Library/Developer/CoreSimulator/Devices' / udid / 'data/Library/Logs/CrashReporter')\nrows = []\nerrors = []\ntruncated = False\nfor root in roots:\n    try:\n        with os.scandir(root) as entries:\n            for entry in entries:\n                if len(rows) >= 200 or time.monotonic() - start > 10:\n                    truncated = True\n                    break\n                if entry.is_file(follow_symlinks=False) and entry.name.endswith(('.ips', '.crash')):\n                    stat = entry.stat(follow_symlinks=False)\n                    rows.append(dict(root=str(root), name=entry.name, size=stat.st_size, mtime=stat.st_mtime))\n    except OSError as exc:\n        errors.append(dict(root=str(root), error=type(exc).__name__))\noutput = pathlib.Path(os.environ['RUNNER_TEMP']) / 'evidence'\noutput.mkdir(exist_ok=True)\n(output / 'crash-inventory.json').write_text(json.dumps(dict(reports=rows, errors=errors, truncated=truncated, elapsed=time.monotonic()-start, scope='metadata only; absence does not prove no crashes')))\n"], timeout=15, check=True)
+          except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+              print('Private crash inventory incomplete; no acceptance inference')
+          PYINVENTORY
       - name: Encrypt validation evidence
         if: always()
         env:
