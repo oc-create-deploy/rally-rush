@@ -382,7 +382,7 @@ jobs:
 
   host-diagnostics:
     if: inputs.diagnostics_only
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
