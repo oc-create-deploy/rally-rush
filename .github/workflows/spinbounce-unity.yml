@@ -419,6 +419,16 @@ jobs:
           except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
               print('Private logging incomplete; no acceptance inference')
           PYFILTER
+      - name: Bounded private host simulator log candidates
+        if: failure()
+        run: |
+          python3 - <<'PYHOST'
+          import subprocess, sys
+          try:
+              subprocess.run([sys.executable, '-c', '"""Host filesystem-only private simulator log collection; diagnostic, not acceptance."""\nimport json\nimport os\nimport pathlib\nimport re\nimport stat\n\nCAP = 262144\n\ndef collect(home, udid, output):\n    home, output = pathlib.Path(home), pathlib.Path(output)\n    output.mkdir(parents=True, exist_ok=True)\n    if not re.fullmatch(r"[0-9a-fA-F]{8}(?:-[0-9a-fA-F]{4}){3}-[0-9a-fA-F]{12}", udid):\n        raise ValueError("Invalid selected simulator identifier")\n    candidates = [\n        home / "Library/Logs/CoreSimulator/CoreSimulator.log",\n        home / "Library/Logs/CoreSimulator" / udid / "system.log",\n        home / "Library/Developer/CoreSimulator/Devices" / udid / "data/Library/Logs/system.log",\n    ]\n    results = []\n    for index, source in enumerate(candidates):\n        row = {"candidate": index, "status": "unavailable"}\n        descriptor = None\n        try:\n            # Reject symlinked ancestors as well as a symlinked file.\n            if any(p.is_symlink() for p in (source, *source.parents)):\n                row["status"] = "symlink_rejected"\n            else:\n                descriptor = os.open(source, os.O_RDONLY | os.O_NOFOLLOW | os.O_NONBLOCK)\n                info = os.fstat(descriptor)\n                if not stat.S_ISREG(info.st_mode):\n                    row["status"] = "not_regular"\n                else:\n                    with os.fdopen(descriptor, "rb") as stream:\n                        descriptor = None\n                        stream.seek(max(0, info.st_size - CAP))\n                        content = stream.read(CAP)\n                    (output / ("host-log-%d.txt" % index)).write_bytes(content)\n                    row.update(status="captured", bytes=len(content), truncated=info.st_size > CAP)\n        except OSError as error:\n            row.update(status="unavailable", errno=error.errno)\n        finally:\n            if descriptor is not None:\n                os.close(descriptor)\n        results.append(row)\n    (output / "host-log-summary.json").write_text(json.dumps({"scope": "host candidate files only; absence is not no failures", "files": results}))\n    return results\n\ncollect(os.environ[\'HOME\'], os.environ.get(\'UDID\',\'\'), pathlib.Path(os.environ[\'RUNNER_TEMP\'])/\'evidence\')\n'], timeout=12, check=True)
+          except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+              print('Private host logging incomplete; no acceptance inference')
+          PYHOST
       - name: Encrypt validation evidence
         if: always()
         env:
