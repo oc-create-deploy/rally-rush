@@ -261,6 +261,15 @@ jobs:
                                                 early_exit_status=early_status,
                                                 final_exit_status=child.poll(), cleanup=cleanup)) + "\n")
                       log.flush()
+          phase('post_boot_allowance', settling_outer_seconds=125, admission_outer_seconds=195, combined_subprocess_timeout_allowance_seconds=320, acceptance_changed=False)
+          try:
+              subprocess.run([sys.executable, '-c', '"""One bounded post-boot settling interval; not an admission verdict."""\nimport math\nimport time\n\n\ndef settle(seconds=120, *, clock=time.monotonic, sleep=time.sleep, emit=lambda event: None):\n    if not math.isfinite(seconds) or not 0 <= seconds <= 120:\n        raise ValueError(\'invalid settling duration\')\n    start = clock()\n    if not math.isfinite(start):\n        raise ValueError(\'invalid clock\')\n    deadline = start + seconds\n    emit(dict(phase=\'post_boot_settling_start\', seconds=seconds))\n    previous = start\n    while True:\n        now = clock()\n        if not math.isfinite(now) or now < previous:\n            raise RuntimeError(\'invalid clock progression\')\n        if now > deadline + 5:\n            raise TimeoutError(\'settling wake exceeded allowance\')\n        if now >= deadline:\n            break\n        sleep(min(1, deadline-now))\n        previous = now\n    emit(dict(phase=\'post_boot_settling_end\', elapsed=now-start,\n              admission_ready=False))\n\nimport json,os,pathlib\ndef journal(event):\n    p=pathlib.Path(os.environ[\'RUNNER_TEMP\'])/\'evidence\'/\'recording-phases.jsonl\'\n    with p.open(\'a\') as stream:\n        stream.write(json.dumps(dict(monotonic=time.monotonic(),utc=time.time(),**event))+\'\\n\')\nsettle(emit=journal)\n'], check=True, timeout=125)
+          except subprocess.TimeoutExpired:
+              phase('post_boot_settling_failed', reason='outer_timeout')
+              sys.exit(124)
+          except subprocess.CalledProcessError:
+              phase('post_boot_settling_failed', reason='helper_failure')
+              sys.exit(125)
           phase('pre_launch_baseline_start', requested_interval_seconds=1.0, duration_seconds=180.0, purpose='bounded_preinstall_resource_stability_not_gameplay_acceptance')
           def baseline():
               with (evidence / 'pre-launch-collector.log').open('x') as log:
