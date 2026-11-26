@@ -409,6 +409,16 @@ jobs:
           except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
               print('Private crash inventory incomplete; no acceptance inference')
           PYINVENTORY
+      - name: Bounded private postfailure simulator logs
+        if: failure()
+        run: |
+          python3 - <<'PYFILTER'
+          import subprocess, sys
+          try:
+              subprocess.run([sys.executable, '-c', 'import json, os, pathlib, re, subprocess, time\nout=pathlib.Path(os.environ[\'RUNNER_TEMP\'])/\'evidence\'\nout.mkdir(exist_ok=True)\nsummary={\'scope\':\'postfailure diagnostic only; no acceptance inference\',\'commands\':[]}\ndef capture(name,args,seconds,cap):\n    path=out/name\n    with path.open(\'wb\') as stream:\n        process=subprocess.Popen(args,stdout=stream,stderr=subprocess.STDOUT)\n        start=time.monotonic()\n        reason=\'completed\'\n        while process.poll() is None:\n            if time.monotonic()-start>seconds or path.stat().st_size>cap:\n                reason=\'timeout_or_size_limit\'\n                process.kill()\n                break\n            time.sleep(.05)\n        process.wait(timeout=2)\n    if path.stat().st_size>cap:\n        with path.open(\'r+b\') as stream: stream.truncate(cap)\n    summary[\'commands\'].append(dict(name=name,code=process.returncode,reason=reason))\n    return path.read_text(errors=\'replace\'),process.returncode\nudid=os.environ.get(\'UDID\',\'\')\nif re.fullmatch(r\'[0-9a-fA-F-]{36}\',udid):\n    prefix=[\'xcrun\',\'simctl\',\'spawn\',udid,\'log\']\n    helptext,code=capture(\'simulator-log-show-help.txt\',prefix+[\'help\',\'show\'],6,262144)\n    required=[\'--last\',\'--predicate\',\'--style\']\n    if code==0 and all(flag in helptext for flag in required):\n        capture(\'simulator-filtered-log.txt\',prefix+[\'show\',\'--last\',\'2m\',\'--style\',\'compact\',\'--predicate\',\'process == "diagnosticd" OR process == "amsengagementd" OR process == "apsd"\'],12,2097152)\n    else: summary[\'retrieval\']=\'skipped: native help did not verify required options\'\nelse: summary[\'retrieval\']=\'skipped: missing or invalid selected simulator\'\n(out/\'filtered-log-summary.json\').write_text(json.dumps(summary))\n'], timeout=25, check=True)
+          except (subprocess.TimeoutExpired, subprocess.CalledProcessError):
+              print('Private logging incomplete; no acceptance inference')
+          PYFILTER
       - name: Encrypt validation evidence
         if: always()
         env:
